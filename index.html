@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>Molly Arora • 3D Developer Portfolio & AI Lab</title>
+  <meta name="description" content="Interactive 3D Portfolio of Molly Arora — BTech CSE (AI) Student, Aspiring AI/ML Engineer, Full-Stack Developer & Hackathon Winner.">
+  <meta name="keywords" content="Molly Arora, Portfolio, Three.js, AI Engineer, Machine Learning, IIT Mandi, Coding Blocks, C++, DSA, Dev Summit 2026">
+  
+  <meta property="og:title" content="Molly Arora • 3D Developer Portfolio">
+  <meta property="og:description" content="Explore Molly Arora's interactive 3D developer room, projects, AI research, and achievements.">
+  <meta property="og:type" content="website">
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+
+  <!-- WebGL 3D Canvas -->
+  <canvas id="webgl-canvas"></canvas>
+
+  <!-- Top HUD Header -->
+  <header class="hud-header glass-panel">
+    <div class="brand-area">
+      <div class="brand-logo">MA</div>
+      <div class="brand-text">
+        <h1>Molly Arora</h1>
+        <div class="status-badge">
+          <span class="status-dot"></span>
+          <span>AI/ML Engineer & Full-Stack Developer • 8th PAN India DevSummit</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hud-actions">
+      <button id="audio-toggle-btn" class="hud-btn" title="Toggle Lo-Fi Ambient & SFX">
+        <span class="icon">🔇</span> Sound: OFF
+      </button>
+      <button id="mode-toggle-btn" class="hud-btn" title="Toggle Accessible 2D Portfolio">
+        <span>📄 Accessible 2D View</span>
+      </button>
+      <button class="hud-btn primary nav-btn" data-view="contact">
+        <span>✉️ Get in Touch</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Floating Back to Overview Button -->
+  <button id="back-to-room-btn" class="back-btn hidden">
+    <span>⬅ Back to Room Overview</span>
+  </button>
+
+  <!-- Bottom Navigation Dock -->
+  <nav class="bottom-dock glass-panel">
+    <button class="nav-btn active" data-view="overview" title="Room Overview">
+      <span>🏠 Room</span>
+    </button>
+    <button class="nav-btn" data-view="monitors" title="Dual Monitors Setup">
+      <span>🖥️ Workstation</span>
+    </button>
+    <button class="nav-btn" data-view="rubik" title="Interactive Rubik's Cube">
+      <span>🎲 Rubik's Cube</span>
+    </button>
+    <button class="nav-btn" data-view="whiteboard" title="Wall Whiteboard">
+      <span>🎨 Whiteboard</span>
+    </button>
+    <button class="nav-btn" data-view="arcade" title="Retro Arcade Cabinet">
+      <span>🕹️ Arcade</span>
+    </button>
+    <button class="nav-btn" data-view="trophy" title="Hackathon Trophies">
+      <span>🏆 Trophies</span>
+    </button>
+    <button class="nav-btn" data-view="resume" title="View Full Resume">
+      <span>📄 Resume</span>
+    </button>
+  </nav>
+
+  <!-- Contextual Panel: Dual Monitors (Projects & Timeline) -->
+  <div id="monitors-panel" class="context-panel glass-panel hidden">
+    <!-- Left Monitor: Projects & Tech Stack -->
+    <div class="monitor-card">
+      <div class="monitor-card-header">
+        <h2><span>⚡</span> Featured Projects & AI Lab</h2>
+        <span class="status-badge">Live Demos & Repos</span>
+      </div>
+      <div id="projects-grid-container" class="projects-grid"></div>
+    </div>
+
+    <!-- Right Monitor: Career Experience & Credentials -->
+    <div class="monitor-card">
+      <div class="monitor-card-header">
+        <h2><span>📜</span> Experience & Academic Journey</h2>
+        <span class="status-badge">Mirai • IIT Mandi • Stanford</span>
+      </div>
+      <div id="experience-timeline-container" class="timeline-list"></div>
+    </div>
+  </div>
+
+  <!-- Contextual Panel: Rubik's Cube Controls -->
+  <div id="rubik-panel" class="context-panel glass-panel hidden">
+    <div class="monitor-card-header">
+      <h2><span>🎲</span> 3D Rubik's Cube</h2>
+      <span class="status-badge">Interactive 3x3</span>
+    </div>
+    <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:12px;">
+      Click any colored face sticker on the 3D cube to reveal verified skills, ratings, and milestones!
+    </p>
+
+    <div class="rubik-controls">
+      <button class="rubik-turn-btn" data-axis="y" data-layer="1" data-dir="1">U (Top)</button>
+      <button class="rubik-turn-btn" data-axis="y" data-layer="-1" data-dir="1">D (Base)</button>
+      <button class="rubik-turn-btn" data-axis="x" data-layer="-1" data-dir="1">L (Left)</button>
+      <button class="rubik-turn-btn" data-axis="x" data-layer="1" data-dir="1">R (Right)</button>
+      <button class="rubik-turn-btn" data-axis="z" data-layer="1" data-dir="1">F (Front)</button>
+      <button class="rubik-turn-btn" data-axis="z" data-layer="-1" data-dir="1">B (Back)</button>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:10px;">
+      <button id="rubik-scramble-btn" class="hud-btn" style="flex:1;">🔀 Scramble</button>
+      <button id="rubik-solve-btn" class="hud-btn primary" style="flex:1;">✨ Reset Solved</button>
+    </div>
+  </div>
+
+  <!-- Contextual Panel: Whiteboard Drawing Tools -->
+  <div id="whiteboard-panel" class="context-panel glass-panel hidden">
+    <div class="monitor-card-header">
+      <h2><span>🎨</span> Interactive Whiteboard</h2>
+      <span class="status-badge">Draw on 3D Wall</span>
+    </div>
+    <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:10px;">
+      Click and drag on the 3D wall to sketch notes or choose a diagram preset:
+    </p>
+
+    <div class="wb-colors">
+      <button class="wb-color-btn active" data-color="#06b6d4" style="background:#06b6d4;" title="Cyan Marker"></button>
+      <button class="wb-color-btn" data-color="#6366f1" style="background:#6366f1;" title="Indigo Marker"></button>
+      <button class="wb-color-btn" data-color="#10b981" style="background:#10b981;" title="Green Marker"></button>
+      <button class="wb-color-btn" data-color="#f43f5e" style="background:#f43f5e;" title="Coral Marker"></button>
+      <button class="wb-color-btn" data-color="#18181b" style="background:#18181b;" title="Black Marker"></button>
+      <button class="wb-color-btn" data-color="eraser" style="background:#e2e8f0; color:#000; font-size:12px; display:flex; align-items:center; justify-content:center;" title="Eraser">🧹</button>
+    </div>
+
+    <div class="wb-presets">
+      <button class="wb-preset-btn" data-preset="neural">🧠 Load Neural Network Graph</button>
+      <button class="wb-preset-btn" data-preset="tree">🌲 Load Balanced BST (DSA)</button>
+    </div>
+
+    <button id="wb-clear-btn" class="hud-btn" style="width:100%; margin-top:8px;">🗑️ Clear Whiteboard</button>
+  </div>
+
+  <!-- Contextual Panel: Arcade Machine Controls -->
+  <div id="arcade-panel" class="context-panel glass-panel hidden">
+    <div class="monitor-card-header">
+      <h2><span>🕹️</span> Cyber Arcade Cabinet</h2>
+      <span class="status-badge">Playable Mini-Games</span>
+    </div>
+
+    <div class="arcade-games-selector">
+      <button class="arcade-game-btn active" data-game="snake">🐍 Snake</button>
+      <button class="arcade-game-btn" data-game="tetris">🧱 Tetris</button>
+      <button class="arcade-game-btn" data-game="invaders">🚀 Invaders</button>
+    </div>
+
+    <p style="font-size:0.75rem; color:var(--text-muted); text-align:center;">
+      Use Arrow Keys or On-Screen Controls below:
+    </p>
+
+    <div class="arcade-dpad">
+      <div></div>
+      <button class="arcade-dpad-btn" data-key="ArrowUp">▲</button>
+      <div></div>
+      <button class="arcade-dpad-btn" data-key="ArrowLeft">◀</button>
+      <button class="arcade-dpad-btn" data-key=" " style="font-size:0.75rem; background:var(--accent-pink);">ACT</button>
+      <button class="arcade-dpad-btn" data-key="ArrowRight">▶</button>
+      <div></div>
+      <button class="arcade-dpad-btn" data-key="ArrowDown">▼</button>
+      <button class="arcade-dpad-btn" data-key="Enter" style="font-size:0.75rem; background:var(--accent-cyan);">⟳</button>
+    </div>
+  </div>
+
+  <!-- Rubik Sticker Click Toast -->
+  <div id="fact-toast" class="fact-toast glass-panel">
+    <span class="fact-tag">Milestone</span>
+    <h4 class="fact-title">Fact Title</h4>
+    <p class="fact-desc">Fact description will appear here.</p>
+  </div>
+
+  <!-- Trophy Celebration Modal -->
+  <div id="trophy-modal" class="modal-container">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <button class="modal-close">&times;</button>
+      <div style="text-align:center; margin-bottom:20px;">
+        <span style="font-size:3.5rem;">🏆</span>
+        <h2 style="font-size:1.8rem; font-weight:800; margin-top:8px;">National Level Hackathon Finalist!</h2>
+        <p style="color:var(--accent-amber); font-weight:600; font-size:1.05rem;">Ranked 8th PAN India @ DevSummit 2026</p>
+      </div>
+
+      <div style="background:rgba(30,41,59,0.5); padding:18px; border-radius:var(--radius-md); border:1px solid var(--border-glass); margin-bottom:16px;">
+        <h3 style="font-size:1.1rem; color:var(--accent-cyan); margin-bottom:8px;">Verified Accomplishments:</h3>
+        <ul style="padding-left:20px; line-height:1.7; color:var(--text-secondary); font-size:0.9rem;">
+          <li><strong>DevSummit 2026:</strong> Ranked <strong>8th PAN India</strong> in the national-level hackathon.</li>
+          <li><strong>MUSE AI:</strong> Solo-built and published live Voice AI co-producer on Agora Voice AI platform.</li>
+          <li><strong>Google Certified:</strong> Prompt Engineering, LLM/Agent pipeline design & evaluation.</li>
+          <li><strong>IIT Mandi Minor Certification:</strong> Scored exceptional <strong>8.0 CGPA</strong> in Data Science & Machine Learning.</li>
+          <li><strong>Stanford University:</strong> Code in Place certified in Python Programming.</li>
+          <li><strong>GirlScript Summer of Code:</strong> Contributed to open-source repositories under GSSoC'26.</li>
+          <li><strong>Anveshan Hackathon:</strong> Certificate of Achievement.</li>
+        </ul>
+      </div>
+
+      <div style="text-align:center;">
+        <button class="hud-btn primary modal-close">Awesome! ✨</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full Resume & Credentials Modal -->
+  <div id="resume-modal" class="modal-container">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <button class="modal-close">&times;</button>
+      
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border-glass); padding-bottom:16px; margin-bottom:20px;">
+        <div>
+          <h2 style="font-size:1.8rem; font-weight:800;">MOLLY ARORA</h2>
+          <p style="color:var(--accent-cyan); font-size:0.95rem; margin-top:4px;">
+            AI/ML Engineer | Frontend & Full-Stack Developer
+          </p>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin-top:4px;">
+            📍 Delhi, India • 📞 +91 7037836464 • ✉️ aroramolly180@gmail.com
+          </p>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <a href="mailto:aroramolly180@gmail.com" class="hud-btn primary">
+            <span>✉️ Email</span>
+          </a>
+          <a href="https://github.com/Molly-Arora02" target="_blank" rel="noreferrer" class="hud-btn">
+            <span>GitHub</span>
+          </a>
+          <a href="https://www.linkedin.com/in/molly-arora-20b11124a" target="_blank" rel="noreferrer" class="hud-btn">
+            <span>LinkedIn</span>
+          </a>
+        </div>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <h3 style="color:var(--accent-indigo); font-size:1.1rem; margin-bottom:8px;">Summary</h3>
+        <p style="color:var(--text-secondary); font-size:0.88rem; line-height:1.6;">
+          B.Tech Computer Science (AI) student building at the intersection of AI/ML and frontend engineering. Have shipped a live, published AI voice-agent product end-to-end, alongside two full-stack development internships (React/TypeScript, REST APIs). Ranked 8th PAN India at DevSummit 2026, a national-level hackathon. Google-certified in Prompt Engineering, Stanford-certified in Python (Code in Place), and IIT Mandi-certified in Data Science & ML (8.0 CGPA). Active open-source contributor via GirlScript Summer of Code. Seeking AI Engineer or Frontend Developer internships to build production-grade, user-facing AI systems.
+        </p>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <h3 style="color:var(--accent-indigo); font-size:1.1rem; margin-bottom:12px;">Education</h3>
+        <div id="education-list-container" style="display:flex; flex-direction:column; gap:12px;"></div>
+      </div>
+
+      <div>
+        <h3 style="color:var(--accent-indigo); font-size:1.1rem; margin-bottom:12px;">Certifications & Hackathons</h3>
+        <div id="certs-2d-grid" class="certs-grid-2d"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Modal -->
+  <div id="contact-modal" class="modal-container">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content" style="max-width:560px;">
+      <button class="modal-close">&times;</button>
+      <h2 style="font-size:1.5rem; font-weight:800; margin-bottom:6px;">Let's Connect & Collaborate 🚀</h2>
+      <p style="color:var(--text-secondary); font-size:0.88rem;">
+        Seeking AI Engineer or Frontend Developer internships to build production-grade, user-facing AI systems.
+      </p>
+
+      <form id="contact-form" class="contact-form">
+        <div class="form-group">
+          <label for="name">Your Name</label>
+          <input type="text" id="name" placeholder="Name or Recruiter" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Your Email</label>
+          <input type="email" id="email" placeholder="recruiter@company.com" required>
+        </div>
+        <div class="form-group">
+          <label for="message">Message / Opportunity</label>
+          <textarea id="message" rows="4" placeholder="Hi Molly, we would love to connect with you regarding our AI / Frontend internship..." required></textarea>
+        </div>
+        <button type="submit" class="hud-btn primary" style="justify-content:center; padding:12px; font-size:1rem; margin-top:8px;">
+          Send Message ✨
+        </button>
+      </form>
+
+      <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border-glass); display:flex; justify-content:space-around;">
+        <a href="mailto:aroramolly180@gmail.com" style="color:var(--accent-cyan); text-decoration:none; font-size:0.85rem;">
+          📧 aroramolly180@gmail.com
+        </a>
+        <a href="https://github.com/Molly-Arora02" target="_blank" rel="noreferrer" style="color:var(--accent-cyan); text-decoration:none; font-size:0.85rem;">
+          🐙 GitHub: Molly-Arora02
+        </a>
+        <a href="https://www.linkedin.com/in/molly-arora-20b11124a" target="_blank" rel="noreferrer" style="color:var(--accent-cyan); text-decoration:none; font-size:0.85rem;">
+          🔗 LinkedIn Profile
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accessible 2D Portfolio View (For instant scrolling & mobile fallback) -->
+  <div id="mode-2d-container" class="hidden">
+    <div class="container-2d">
+      <div class="hero-2d">
+        <h1>MOLLY ARORA</h1>
+        <p>AI/ML Engineer | Frontend & Full-Stack Developer</p>
+        <p style="font-size:0.95rem; color:var(--text-muted); margin-top:-10px; margin-bottom:20px;">
+          📍 Delhi, India • 📞 +91 7037836464 • ✉️ aroramolly180@gmail.com
+        </p>
+        <div style="display:flex; justify-content:center; gap:12px;">
+          <a href="mailto:aroramolly180@gmail.com" class="hud-btn primary"><span>✉️ Email Molly</span></a>
+          <a href="https://github.com/Molly-Arora02" target="_blank" rel="noreferrer" class="hud-btn"><span>🐙 GitHub</span></a>
+          <a href="https://www.linkedin.com/in/molly-arora-20b11124a" target="_blank" rel="noreferrer" class="hud-btn"><span>🔗 LinkedIn</span></a>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="stats-grid-2d">
+        <div class="stat-card-2d">
+          <div class="stat-val">8th PAN India</div>
+          <div class="stat-lbl">National Hackathon</div>
+          <div class="stat-sub">DevSummit 2026</div>
+        </div>
+        <div class="stat-card-2d">
+          <div class="stat-val">MUSE AI</div>
+          <div class="stat-lbl">Live Voice AI Product</div>
+          <div class="stat-sub">Published on Agora</div>
+        </div>
+        <div class="stat-card-2d">
+          <div class="stat-val">8.0 CGPA</div>
+          <div class="stat-lbl">Minor in DS & ML</div>
+          <div class="stat-sub">IIT Mandi</div>
+        </div>
+        <div class="stat-card-2d">
+          <div class="stat-val">GSSoC '26</div>
+          <div class="stat-lbl">Open Source</div>
+          <div class="stat-sub">Contributor & Mentee</div>
+        </div>
+      </div>
+
+      <!-- Projects Section -->
+      <section class="section-2d">
+        <h2 class="section-title"><span>⚡</span> Featured Projects & AI Solutions</h2>
+        <div id="projects-2d-grid" class="projects-grid"></div>
+      </section>
+
+      <!-- Skills Section -->
+      <section class="section-2d">
+        <h2 class="section-title"><span>🛠️</span> Technical Skills & Core Competencies</h2>
+        <div id="skills-2d-grid" class="skills-grid-2d"></div>
+      </section>
+
+      <!-- Experience Section -->
+      <section class="section-2d">
+        <h2 class="section-title"><span>💼</span> Experience & Leadership</h2>
+        <div id="experience-2d-timeline" class="timeline-list"></div>
+      </section>
+
+      <!-- Education Section -->
+      <section class="section-2d">
+        <h2 class="section-title"><span>🎓</span> Education & Academic Background</h2>
+        <div id="education-2d-list" style="display:flex; flex-direction:column; gap:16px;"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- JavaScript Entry Point -->
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
