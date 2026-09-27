@@ -1,6 +1,7 @@
 import confetti from 'canvas-confetti';
 import { mollyData } from '../data/mollyData.js';
 import ChatbotAssistant from './ChatbotAssistant.js';
+import { MUSIC_STATIONS } from '../experience/AudioManager.js';
 
 export default class UIController {
   constructor(experience) {
@@ -17,6 +18,7 @@ export default class UIController {
     this.populateData();
     this.initClockAndCalendar();
     this.initChatbot();
+    this.initMusicHub();
   }
 
   initChatbot() {
@@ -35,10 +37,23 @@ export default class UIController {
     this.resumeModal = document.getElementById('resume-modal');
     this.contactModal = document.getElementById('contact-modal');
     this.factToast = document.getElementById('fact-toast');
-    this.audioBtn = document.getElementById('audio-toggle-btn');
     this.mode2DBtn = document.getElementById('mode-toggle-btn');
     this.mode2DContainer = document.getElementById('mode-2d-container');
     this.backToRoomBtn = document.getElementById('back-to-room-btn');
+
+    // Music Hub elements
+    this.musicPillBtn = document.getElementById('music-pill-btn');
+    this.musicDropdown = document.getElementById('music-dropdown');
+    this.musicPillLabel = document.getElementById('music-pill-label');
+    this.musicPlayToggleBtn = document.getElementById('music-play-toggle-btn');
+    this.musicPlayIcon = document.getElementById('music-play-icon');
+    this.musicNowPlaying = document.getElementById('music-now-playing');
+    this.musicVolumeSlider = document.getElementById('music-volume-slider');
+    this.musicVolValue = document.getElementById('music-vol-value');
+    this.musicVolIcon = document.getElementById('music-vol-icon');
+    this.musicStationsGrid = document.getElementById('music-stations-grid');
+    this.musicCustomForm = document.getElementById('music-custom-form');
+    this.musicCustomInput = document.getElementById('music-custom-input');
   }
 
   setupListeners() {
@@ -66,28 +81,17 @@ export default class UIController {
       });
     }
 
-    // Audio toggle
-    if (this.audioBtn) {
-      this.audioBtn.addEventListener('click', () => {
-        const isPlaying = this.audioManager.toggleMute();
-        this.audioBtn.innerHTML = isPlaying
-          ? `<span class="icon">🔊</span> Sound: ON`
-          : `<span class="icon">🔇</span> Sound: OFF`;
-        this.audioBtn.classList.toggle('active', isPlaying);
-      });
-    }
-
     // 2D / 3D Mode toggle
     if (this.mode2DBtn) {
       this.mode2DBtn.addEventListener('click', () => {
         this.is2DMode = !this.is2DMode;
         if (this.is2DMode) {
           this.mode2DContainer.classList.remove('hidden');
-          this.mode2DBtn.innerHTML = `<span>🧊 Switch to 3D Room</span>`;
+          this.mode2DBtn.innerHTML = `<span class="hud-icon">🧊</span> <span>3D Room</span>`;
           document.body.classList.add('mode-2d-active');
         } else {
           this.mode2DContainer.classList.add('hidden');
-          this.mode2DBtn.innerHTML = `<span>📄 Accessible 2D View</span>`;
+          this.mode2DBtn.innerHTML = `<span class="hud-icon">📄</span> <span>2D View</span>`;
           document.body.classList.remove('mode-2d-active');
         }
       });
@@ -429,6 +433,89 @@ export default class UIController {
         }, 2500);
       }
     });
+
+    // -------------------------------------------------------------
+    // Recruiter Direct Phone Request Flow
+    // -------------------------------------------------------------
+    document.querySelectorAll('.phone-request-trigger-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.openModal('phone-request-modal');
+      });
+    });
+
+    const handlePhoneDraft = (isWebGmail = false) => {
+      const nameInput = document.getElementById('req-name');
+      const emailInput = document.getElementById('req-email');
+      const compInput = document.getElementById('req-company');
+      const roleInput = document.getElementById('req-role');
+
+      const name = nameInput?.value.trim() || 'Verified Recruiter';
+      const email = emailInput?.value.trim() || '';
+      const company = compInput?.value.trim() || 'Hiring Team';
+      const role = roleInput?.value.trim() || 'AI/ML Engineering Internship';
+
+      const subject = `📱 [Phone Access Request] ${name} from ${company}`;
+      const body = `Hi Molly,\n\nA verified recruiter has requested your direct mobile phone number on your 3D portfolio:\n\n• Recruiter Name: ${name}\n• Official Email: ${email}\n• Company / Organization: ${company}\n• Opportunity / Role: ${role}\n• Date & Time: ${new Date().toLocaleString()}\n\nPlease reply directly to this email (${email}) with your direct phone number.\n\nBest regards,\n${name} (${company})`;
+
+      // Store in local history
+      try {
+        const stored = JSON.parse(localStorage.getItem('molly_recruiter_requests') || '[]');
+        stored.push({ name, email, company, role, date: new Date().toISOString() });
+        localStorage.setItem('molly_recruiter_requests', JSON.stringify(stored));
+      } catch (e) {}
+
+      // Dispatch via Mail / Gmail
+      if (isWebGmail) {
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=aroramolly180@gmail.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.open(gmailUrl, '_blank');
+      } else {
+        const mailtoUrl = `mailto:aroramolly180@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.location.href = mailtoUrl;
+      }
+
+      // Show in-modal confirmation state
+      const form = document.getElementById('phone-request-form');
+      const successBox = document.getElementById('phone-req-success');
+      const emailSpan = document.getElementById('req-success-email');
+      if (emailSpan) emailSpan.textContent = email || name;
+      if (form) form.classList.add('hidden');
+      if (successBox) successBox.classList.remove('hidden');
+
+      this.audioManager?.playTrophyFanfare();
+      confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
+    };
+
+    document.getElementById('phone-request-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      handlePhoneDraft(false);
+    });
+
+    document.getElementById('send-phone-gmail-btn')?.addEventListener('click', () => {
+      handlePhoneDraft(true);
+    });
+  }
+
+  openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      if (modalId === 'phone-request-modal') {
+        const form = document.getElementById('phone-request-form');
+        const successBox = document.getElementById('phone-req-success');
+        if (form) form.classList.remove('hidden');
+        if (successBox) successBox.classList.add('hidden');
+      }
+      modal.classList.add('active');
+      this.audioManager?.playClick();
+    }
+  }
+
+  closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.classList.remove('active');
+    }
   }
 
   switchView(viewName) {
@@ -936,5 +1023,163 @@ export default class UIController {
     window.addEventListener('showcalendarmodal', () => {
       this.openModal('calendar-modal');
     });
+  }
+
+  // -------------------------------------------------------------
+  // Music & YouTube Hub Controller
+  // -------------------------------------------------------------
+  initMusicHub() {
+    if (!this.musicPillBtn || !this.musicDropdown) return;
+
+    // 1. Populate Stations List
+    this.renderMusicStations();
+
+    // 2. Toggle Music Hub Dropdown
+    this.musicPillBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isHidden = this.musicDropdown.classList.contains('hidden');
+      
+      // Close other dropdowns
+      document.getElementById('weather-dropdown')?.classList.add('hidden');
+      document.getElementById('weather-pill-btn')?.classList.remove('active');
+
+      if (isHidden) {
+        this.musicDropdown.classList.remove('hidden');
+        this.musicPillBtn.classList.add('active');
+        this.audioManager?.playClick();
+      } else {
+        this.musicDropdown.classList.add('hidden');
+        this.musicPillBtn.classList.remove('active');
+      }
+    });
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+      if (!this.musicDropdown.contains(e.target) && !this.musicPillBtn.contains(e.target)) {
+        this.musicDropdown.classList.add('hidden');
+        this.musicPillBtn.classList.remove('active');
+      }
+    });
+
+    // Prevent closing when clicking inside the dropdown
+    this.musicDropdown.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    // 3. Play / Pause Toggle Button
+    this.musicPlayToggleBtn?.addEventListener('click', () => {
+      this.audioManager.togglePlayPause();
+      this.audioManager?.playClick();
+    });
+
+    // 4. Volume Slider
+    if (this.musicVolumeSlider) {
+      this.musicVolumeSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        this.audioManager.setVolume(val);
+        if (this.musicVolValue) this.musicVolValue.textContent = `${val}%`;
+        if (this.musicVolIcon) {
+          if (val === 0) this.musicVolIcon.textContent = '🔇';
+          else if (val < 40) this.musicVolIcon.textContent = '🔈';
+          else this.musicVolIcon.textContent = '🔉';
+        }
+      });
+    }
+
+    // 5. Custom YouTube Audio Form Submission
+    if (this.musicCustomForm) {
+      this.musicCustomForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const urlOrId = this.musicCustomInput?.value.trim();
+        if (!urlOrId) return;
+
+        const res = this.audioManager.loadCustomYouTube(urlOrId);
+        if (res.success) {
+          if (this.musicCustomInput) this.musicCustomInput.value = '';
+          this.renderMusicStations(); // update active state
+          this.audioManager?.playClick();
+        } else {
+          alert(res.message || 'Could not parse YouTube link. Please paste a valid video URL.');
+        }
+      });
+    }
+
+    // 6. Register Real-time Audio State Listener
+    this.audioManager.setOnStateChange((state) => {
+      this.updateMusicUI(state);
+    });
+
+    // Initialize UI state
+    this.updateMusicUI({
+      isPlaying: this.audioManager.isPlaying,
+      isMuted: this.audioManager.isMuted,
+      station: this.audioManager.currentStation,
+      title: this.audioManager.currentTrackTitle,
+      volume: this.audioManager.volume
+    });
+  }
+
+  renderMusicStations() {
+    if (!this.musicStationsGrid) return;
+    this.musicStationsGrid.innerHTML = '';
+
+    MUSIC_STATIONS.forEach((station) => {
+      const isCurrent = this.audioManager.currentStation.id === station.id;
+      const btn = document.createElement('button');
+      btn.className = `station-pill ${isCurrent ? 'active' : ''}`;
+      btn.title = `Switch to ${station.title}`;
+      btn.innerHTML = `
+        <div class="station-left">
+          <span class="station-icon">${station.icon}</span>
+          <span class="station-name">${station.title}</span>
+        </div>
+        <span class="station-cat">${station.category}</span>
+      `;
+
+      btn.addEventListener('click', () => {
+        this.audioManager.selectStation(station.id);
+        this.renderMusicStations();
+        this.audioManager?.playClick();
+      });
+
+      this.musicStationsGrid.appendChild(btn);
+    });
+  }
+
+  updateMusicUI(state) {
+    // Pill State
+    if (this.musicPillBtn) {
+      this.musicPillBtn.classList.toggle('playing', state.isPlaying);
+    }
+
+    if (this.musicPillLabel) {
+      if (state.isPlaying) {
+        // Shorten track name for navbar pill
+        const shortName = state.station?.category || 'Music: ON';
+        this.musicPillLabel.textContent = shortName;
+      } else {
+        this.musicPillLabel.textContent = 'Music: Off';
+      }
+    }
+
+    // Hub Play Button Icon
+    if (this.musicPlayIcon) {
+      this.musicPlayIcon.textContent = state.isPlaying ? '⏸' : '▶';
+    }
+
+    // Now Playing Title
+    if (this.musicNowPlaying) {
+      this.musicNowPlaying.textContent = state.title || 'Lofi Girl • 24/7 Chill Beats';
+    }
+
+    // Update stations list active styling
+    const stationBtns = this.musicStationsGrid?.querySelectorAll('.station-pill');
+    if (stationBtns) {
+      stationBtns.forEach((btn, idx) => {
+        const station = MUSIC_STATIONS[idx];
+        const isCurrent = station && this.audioManager.currentStation.id === station.id;
+        btn.classList.toggle('active', isCurrent);
+      });
+    }
   }
 }

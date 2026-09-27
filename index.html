@@ -28,26 +28,26 @@
         <h1>Molly Arora</h1>
         <div class="status-badge">
           <span class="status-dot"></span>
-          <span>AI/ML Engineer & Full-Stack Developer • 8th PAN India DevSummit</span>
+          <span>AI/ML Engineer & Full-Stack Developer</span>
         </div>
       </div>
     </div>
 
     <div class="hud-actions">
       <!-- Live Clock & Interactive Calendar Button -->
-      <button id="nav-clock-btn" class="hud-btn clock-pill" title="Live Clock & Interactive Calendar Planner">
-        <span class="icon">🕒</span>
+      <button id="nav-clock-btn" class="hud-pill clock-pill" title="Live Clock & Interactive Calendar Planner">
+        <span class="hud-icon">⏱️</span>
         <span id="nav-live-clock">01:21:47 AM</span>
-        <span style="opacity:0.4; margin:0 2px;">•</span>
+        <span class="hud-sep">•</span>
         <span id="nav-live-date">Sun, Sep 27</span>
       </button>
 
       <!-- Real-time Weather & Lighting Mode Selector -->
-      <div class="weather-time-control">
-        <button id="weather-pill-btn" class="hud-btn weather-pill" title="Toggle Real-Time Room Weather & Lighting">
+      <div class="hud-dropdown-wrap">
+        <button id="weather-pill-btn" class="hud-pill weather-pill" title="Toggle Real-Time Room Weather & Lighting">
           <span id="weather-icon" class="weather-icon">☀️</span>
           <span id="weather-label" class="weather-label">Live: Day</span>
-          <span class="pill-chevron">▾</span>
+          <span class="hud-chevron">▾</span>
         </button>
         <div class="weather-dropdown hidden" id="weather-dropdown">
           <button data-mode="auto" class="dropdown-item active">⚡ Auto (My Real Location)</button>
@@ -59,12 +59,64 @@
         </div>
       </div>
 
-      <button id="audio-toggle-btn" class="hud-btn" title="Toggle Lo-Fi Ambient & SFX">
-        <span class="icon">🔇</span> Sound: OFF
+      <!-- YouTube & Ambient Music Player Hub -->
+      <div class="hud-dropdown-wrap music-player-wrap">
+        <button id="music-pill-btn" class="hud-pill music-pill" title="Soundtrack & YouTube Music Hub">
+          <span class="music-wave-indicator" id="music-wave-indicator">
+            <span class="wave-bar"></span>
+            <span class="wave-bar"></span>
+            <span class="wave-bar"></span>
+          </span>
+          <span id="music-pill-label" class="music-label">Music: Off</span>
+          <span class="hud-chevron">▾</span>
+        </button>
+
+        <div class="music-dropdown glass-panel hidden" id="music-dropdown">
+          <div class="music-hub-header">
+            <div class="music-hub-title">
+              <span class="music-title-icon">🎵</span>
+              <div>
+                <div class="hub-heading">Soundtrack & Ambience</div>
+                <div id="music-now-playing" class="hub-subheading">Lofi Girl • 24/7 Chill Beats</div>
+              </div>
+            </div>
+            <button id="music-play-toggle-btn" class="music-hub-play-btn" title="Toggle Play / Pause">
+              <span id="music-play-icon">▶</span>
+            </button>
+          </div>
+
+          <!-- Volume Slider -->
+          <div class="music-volume-row">
+            <span class="vol-icon" id="music-vol-icon">🔉</span>
+            <input type="range" id="music-volume-slider" min="0" max="100" value="70" class="music-vol-range" title="Master Volume">
+            <span id="music-vol-value" class="vol-val">70%</span>
+          </div>
+
+          <!-- Curated Stations -->
+          <div class="music-stations-section">
+            <div class="music-section-label">Curated Radio & Ambiance</div>
+            <div class="music-stations-grid" id="music-stations-grid">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Custom YouTube URL Input -->
+          <div class="music-custom-section">
+            <div class="music-section-label">Custom YouTube Audio</div>
+            <form id="music-custom-form" class="music-custom-form">
+              <input type="text" id="music-custom-input" placeholder="Paste YouTube link or Video ID..." class="music-input" autocomplete="off" spellcheck="false">
+              <button type="submit" class="music-input-btn">Play</button>
+            </form>
+            <div class="music-hint">Paste any YouTube URL, playlist, or stream (e.g. <code>https://youtu.be/...</code>)</div>
+          </div>
+        </div>
+      </div>
+
+      <button id="mode-toggle-btn" class="hud-pill" title="Toggle Accessible 2D Portfolio">
+        <span class="hud-icon">📄</span>
+        <span>2D View</span>
       </button>
-      <button id="mode-toggle-btn" class="hud-btn" title="Toggle Accessible 2D Portfolio">
-        <span>📄 Accessible 2D View</span>
-      </button>
+
       <button class="hud-btn primary nav-btn" data-view="contact">
         <span>✉️ Get in Touch</span>
       </button>
@@ -354,8 +406,8 @@
   <!-- Trophy Celebration Modal -->
   <div id="trophy-modal" class="modal-container">
     <div class="modal-backdrop"></div>
-    <div class="modal-content">
-      <button class="modal-close">&times;</button>
+    <div class="modal-content" style="max-width:620px;">
+      <button class="modal-close-icon modal-close" aria-label="Close modal">&times;</button>
       <div style="text-align:center; margin-bottom:20px;">
         <span style="font-size:3.5rem;">🏆</span>
         <h2 style="font-size:1.8rem; font-weight:800; margin-top:8px;">National Level Hackathon Finalist!</h2>
@@ -375,8 +427,8 @@
         </ul>
       </div>
 
-      <div style="text-align:center;">
-        <button class="hud-btn primary modal-close">Awesome! ✨</button>
+      <div style="text-align:center; margin-top:20px;">
+        <button class="hud-btn primary modal-dismiss-btn modal-close">Awesome! ✨</button>
       </div>
     </div>
   </div>
@@ -385,19 +437,19 @@
   <div id="resume-modal" class="modal-container">
     <div class="modal-backdrop"></div>
     <div class="modal-content">
-      <button class="modal-close">&times;</button>
+      <button class="modal-close-icon modal-close" aria-label="Close modal">&times;</button>
       
       <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border-glass); padding-bottom:16px; margin-bottom:20px;">
-        <div>
+        <div style="padding-right:12px;">
           <h2 style="font-size:1.8rem; font-weight:800;">MOLLY ARORA</h2>
           <p style="color:var(--accent-cyan); font-size:0.95rem; margin-top:4px;">
             AI/ML Engineer | Frontend & Full-Stack Developer
           </p>
           <p style="color:var(--text-muted); font-size:0.85rem; margin-top:4px;">
-            📍 Delhi, India • 📞 +91 7037836464 • ✉️ aroramolly180@gmail.com
+            📍 Delhi, India • <button type="button" class="phone-request-trigger-btn" style="background:none; border:none; color:var(--accent-gold); cursor:pointer; font-size:0.85rem; padding:0; text-decoration:underline; display:inline-flex; align-items:center; gap:4px;" title="Request direct phone number">🔒 Request Direct Phone</button> • ✉️ aroramolly180@gmail.com
           </p>
         </div>
-        <div style="display:flex; gap:8px;">
+        <div style="display:flex; gap:8px; margin-right:44px; flex-shrink:0;">
           <a href="mailto:aroramolly180@gmail.com" class="hud-btn primary">
             <span>✉️ Email</span>
           </a>
@@ -433,7 +485,7 @@
   <div id="contact-modal" class="modal-container">
     <div class="modal-backdrop"></div>
     <div class="modal-content" style="max-width:580px;">
-      <button class="modal-close">&times;</button>
+      <button class="modal-close-icon modal-close" aria-label="Close modal">&times;</button>
       <h2 style="font-size:1.5rem; font-weight:800; margin-bottom:6px;">Let's Connect & Collaborate 🚀</h2>
       <p style="color:var(--text-secondary); font-size:0.88rem; margin-bottom:16px;">
         Seeking AI Engineer or Frontend Developer internships to build production-grade, user-facing AI systems.
@@ -467,9 +519,9 @@
         <button id="copy-email-btn" class="hud-btn" style="font-size:0.8rem; padding:6px 12px; border-color:rgba(245, 158, 11, 0.4); color:var(--accent-gold);" title="Copy email to clipboard">
           📋 Copy: aroramolly180@gmail.com
         </button>
-        <a href="tel:+917037836464" style="color:var(--text-secondary); text-decoration:none; font-size:0.82rem; display:inline-flex; align-items:center; gap:6px;">
-          📞 +91 7037836464
-        </a>
+        <button type="button" class="phone-request-trigger-btn hud-btn" style="font-size:0.8rem; padding:6px 12px; border-color:rgba(245, 158, 11, 0.4); color:var(--accent-gold);" title="Request Molly's direct mobile phone number">
+          🔒 Request Phone Access
+        </button>
         <a href="https://github.com/Molly-Arora02" target="_blank" rel="noreferrer" style="color:var(--text-secondary); text-decoration:none; font-size:0.82rem; display:inline-flex; align-items:center; gap:6px;">
           🐙 GitHub
         </a>
@@ -480,11 +532,70 @@
     </div>
   </div>
 
+  <!-- Recruiter Direct Phone Request Modal -->
+  <div id="phone-request-modal" class="modal-container">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content" style="max-width:540px;">
+      <button class="modal-close-icon modal-close" aria-label="Close modal">&times;</button>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+        <div style="width:44px; height:44px; border-radius:12px; background:rgba(245, 158, 11, 0.15); border:1px solid rgba(245, 158, 11, 0.35); display:flex; align-items:center; justify-content:center; font-size:1.4rem;">
+          📱
+        </div>
+        <div>
+          <h2 style="font-size:1.35rem; font-weight:800; color:#fff;">Request Direct Phone Access</h2>
+          <div style="font-size:0.78rem; color:var(--accent-gold); font-family:var(--font-mono);">
+            🔒 Verified Recruiter & Hiring Gateway
+          </div>
+        </div>
+      </div>
+      
+      <p style="color:var(--text-secondary); font-size:0.86rem; line-height:1.5; margin-bottom:16px;">
+        To protect privacy against automated spam and web scrapers, Molly shares her direct mobile phone number directly with verified recruiters, founders, and hiring managers.
+      </p>
+
+      <form id="phone-request-form" class="contact-form">
+        <div class="form-group">
+          <label for="req-name">Your Full Name</label>
+          <input type="text" id="req-name" placeholder="e.g. Jessica Miller (Lead Tech Recruiter)" required>
+        </div>
+        <div class="form-group">
+          <label for="req-email">Work / Official Email</label>
+          <input type="email" id="req-email" placeholder="jessica@company.com" required>
+        </div>
+        <div class="form-group">
+          <label for="req-company">Company / Organization</label>
+          <input type="text" id="req-company" placeholder="e.g. Google / Microsoft / Stealth AI Startup" required>
+        </div>
+        <div class="form-group">
+          <label for="req-role">Opportunity / Role Title (Optional)</label>
+          <input type="text" id="req-role" placeholder="e.g. AI/ML Engineering Internship (Summer 2026)">
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+          <button type="submit" id="send-phone-req-btn" class="hud-btn primary" style="justify-content:center; padding:12px; font-size:0.95rem; width:100%;">
+            📲 Send Request to Molly
+          </button>
+          <button type="button" id="send-phone-gmail-btn" class="hud-btn" style="justify-content:center; padding:9px; font-size:0.84rem; width:100%; border-color:rgba(239, 68, 68, 0.4); color:#fca5a5;">
+            🔴 Or Send via Web Gmail
+          </button>
+        </div>
+      </form>
+
+      <div id="phone-req-success" class="hidden" style="text-align:center; padding:20px 16px; background:rgba(16, 185, 129, 0.12); border:1px solid rgba(16, 185, 129, 0.35); border-radius:var(--radius-md); margin-top:14px;">
+        <div style="font-size:2rem; margin-bottom:6px;">🎉</div>
+        <h3 style="color:var(--accent-green); font-size:1.1rem; font-weight:700; margin-bottom:6px;">Request Dispatched to Molly!</h3>
+        <p style="color:var(--text-secondary); font-size:0.85rem; line-height:1.5;">
+          Molly has received your request with your contact details (<span id="req-success-email" style="color:#fff; font-weight:600;"></span>) and will share her direct mobile number shortly.
+        </p>
+      </div>
+    </div>
+  </div>
+
   <!-- Smart Clock & Interactive Calendar Modal -->
   <div id="calendar-modal" class="modal-container">
     <div class="modal-backdrop"></div>
     <div class="modal-content" style="max-width:760px; max-height:90vh; overflow-y:auto;">
-      <button class="modal-close">&times;</button>
+      <button class="modal-close-icon modal-close" aria-label="Close modal">&times;</button>
       
       <!-- Top Live Clock Bar & Timezones -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
@@ -576,7 +687,7 @@
         <h1>MOLLY ARORA</h1>
         <p>AI/ML Engineer | Frontend & Full-Stack Developer</p>
         <p style="font-size:0.95rem; color:var(--text-muted); margin-top:-10px; margin-bottom:20px;">
-          📍 Delhi, India • 📞 +91 7037836464 • ✉️ aroramolly180@gmail.com
+          📍 Delhi, India • <button type="button" class="phone-request-trigger-btn" style="background:none; border:none; color:var(--accent-gold); cursor:pointer; font-size:0.95rem; padding:0; text-decoration:underline;" title="Request direct phone access">🔒 Request Phone Access</button> • ✉️ aroramolly180@gmail.com
         </p>
         <div style="display:flex; justify-content:center; gap:12px;">
           <a href="mailto:aroramolly180@gmail.com" class="hud-btn primary"><span>✉️ Email Molly</span></a>

@@ -173,9 +173,9 @@ export default class WeatherTimeSystem {
           r.skyFill.color.setHex(0x93c5fd);
         }
         if (r.warmBounce) gsap.to(r.warmBounce, { intensity: 0.5, duration });
-        if (r.deskTaskLight) gsap.to(r.deskTaskLight, { intensity: 0.8, duration });
+        if (r.deskTaskLight) gsap.to(r.deskTaskLight, { intensity: 0.0, duration });
         if (r.tableLampLight) gsap.to(r.tableLampLight, { intensity: 0.4, duration });
-        if (r.monitorGlow) gsap.to(r.monitorGlow, { intensity: 0.8, duration });
+        if (r.monitorGlow) gsap.to(r.monitorGlow, { intensity: 0.0, duration });
         // Lights OFF during morning
         if (r.starLightsMat) gsap.to(r.starLightsMat, { emissiveIntensity: 0.0, duration });
         if (r.fairyLightBulbMat) gsap.to(r.fairyLightBulbMat, { emissiveIntensity: 0.0, duration });
@@ -196,9 +196,9 @@ export default class WeatherTimeSystem {
           r.skyFill.color.setHex(0xbae6fd);
         }
         if (r.warmBounce) gsap.to(r.warmBounce, { intensity: 0.6, duration });
-        if (r.deskTaskLight) gsap.to(r.deskTaskLight, { intensity: 0.5, duration });
+        if (r.deskTaskLight) gsap.to(r.deskTaskLight, { intensity: 0.0, duration });
         if (r.tableLampLight) gsap.to(r.tableLampLight, { intensity: 0.2, duration });
-        if (r.monitorGlow) gsap.to(r.monitorGlow, { intensity: 0.9, duration });
+        if (r.monitorGlow) gsap.to(r.monitorGlow, { intensity: 0.0, duration });
         // Lights OFF during day
         if (r.starLightsMat) gsap.to(r.starLightsMat, { emissiveIntensity: 0.0, duration });
         if (r.fairyLightBulbMat) gsap.to(r.fairyLightBulbMat, { emissiveIntensity: 0.0, duration });
@@ -219,9 +219,9 @@ export default class WeatherTimeSystem {
           r.skyFill.color.setHex(0xa855f7);
         }
         if (r.warmBounce) gsap.to(r.warmBounce, { intensity: 0.8, duration });
-        if (r.deskTaskLight) gsap.to(r.deskTaskLight, { intensity: 1.5, duration });
+        if (r.deskTaskLight) gsap.to(r.deskTaskLight, { intensity: 0.0, duration });
         if (r.tableLampLight) gsap.to(r.tableLampLight, { intensity: 1.8, duration });
-        if (r.monitorGlow) gsap.to(r.monitorGlow, { intensity: 1.2, duration });
+        if (r.monitorGlow) gsap.to(r.monitorGlow, { intensity: 0.0, duration });
         // Star Curtain lights start glowing in evening
         if (r.starLightsMat) gsap.to(r.starLightsMat, { emissiveIntensity: 2.5, duration });
         if (r.fairyLightBulbMat) gsap.to(r.fairyLightBulbMat, { emissiveIntensity: 2.0, duration });
@@ -243,9 +243,9 @@ export default class WeatherTimeSystem {
         }
         if (r.warmBounce) gsap.to(r.warmBounce, { intensity: 0.7, duration });
         // Cozy night lamps on!
-        if (r.deskTaskLight) gsap.to(r.deskTaskLight, { intensity: 2.8, duration });
+        if (r.deskTaskLight) gsap.to(r.deskTaskLight, { intensity: 0.0, duration });
         if (r.tableLampLight) gsap.to(r.tableLampLight, { intensity: 3.2, duration });
-        if (r.monitorGlow) gsap.to(r.monitorGlow, { intensity: 2.2, duration });
+        if (r.monitorGlow) gsap.to(r.monitorGlow, { intensity: 0.0, duration });
         // Star Waterfall Curtain glow with beautiful dim room reflection!
         if (r.starLightsMat) gsap.to(r.starLightsMat, { emissiveIntensity: 3.8, duration });
         if (r.fairyLightBulbMat) gsap.to(r.fairyLightBulbMat, { emissiveIntensity: 2.8, duration });
@@ -266,9 +266,9 @@ export default class WeatherTimeSystem {
           r.skyFill.color.setHex(0x38bdf8);
         }
         if (r.warmBounce) gsap.to(r.warmBounce, { intensity: 0.85, duration });
-        if (r.deskTaskLight) gsap.to(r.deskTaskLight, { intensity: 2.2, duration });
+        if (r.deskTaskLight) gsap.to(r.deskTaskLight, { intensity: 0.0, duration });
         if (r.tableLampLight) gsap.to(r.tableLampLight, { intensity: 2.4, duration });
-        if (r.monitorGlow) gsap.to(r.monitorGlow, { intensity: 1.5, duration });
+        if (r.monitorGlow) gsap.to(r.monitorGlow, { intensity: 0.0, duration });
         if (r.starLightsMat) gsap.to(r.starLightsMat, { emissiveIntensity: 1.8, duration });
         if (r.fairyLightBulbMat) gsap.to(r.fairyLightBulbMat, { emissiveIntensity: 1.4, duration });
         if (r.fairyPointLight) gsap.to(r.fairyPointLight, { intensity: 0.5, duration });

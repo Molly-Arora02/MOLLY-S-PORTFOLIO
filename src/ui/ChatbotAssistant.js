@@ -420,10 +420,11 @@ export default class ChatbotAssistant {
         ]
       },
       contact: {
-        keywords: ['contact', 'email', 'hire', 'call', 'phone', 'reach', 'linkedin', 'github', 'message', 'interview', 'internship'],
-        text: "✉️ Molly is actively seeking AI Engineer and Frontend Developer internships! You can reach her directly via:\n\n• **Email**: aroramolly180@gmail.com\n• **Phone**: +91 7037836464\n• **LinkedIn**: linkedin.com/in/molly-arora-20b11124a\n• **GitHub**: github.com/Molly-Arora02",
-        spokenText: "Molly is actively seeking AI Engineer and Frontend Developer roles. You can contact her at aroramolly180@gmail.com or connect on LinkedIn and GitHub!",
+        keywords: ['contact', 'email', 'hire', 'call', 'phone', 'reach', 'linkedin', 'github', 'message', 'interview', 'internship', 'mobile', 'number'],
+        text: "✉️ Molly is actively seeking AI Engineer and Frontend Developer internships! You can reach her directly via:\n\n• **Email**: aroramolly180@gmail.com\n• **Phone**: 🔒 Available upon Recruiter Request (click below to request direct access)\n• **LinkedIn**: linkedin.com/in/molly-arora-20b11124a\n• **GitHub**: github.com/Molly-Arora02",
+        spokenText: "Molly is actively seeking AI Engineer and Frontend Developer roles. You can contact her at aroramolly180@gmail.com, request her direct phone number, or connect on LinkedIn and GitHub!",
         actions: [
+          { label: "📱 Request Phone Number", action: "open_phone_request" },
           { label: "✉️ Send Message Now", action: "open_contact" }
         ]
       }
@@ -748,6 +749,11 @@ export default class ChatbotAssistant {
       case 'open_contact':
         this.uiController.openModal('contact-modal');
         this.speak("Opening the contact modal. Feel free to draft a direct message or copy Molly's email!");
+        break;
+
+      case 'open_phone_request':
+        this.uiController.openModal('phone-request-modal');
+        this.speak("Opening the Recruiter Phone Access gateway. Enter your details and Molly will receive your request immediately!");
         break;
 
       case 'open_github':

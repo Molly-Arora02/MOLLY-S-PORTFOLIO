@@ -1,16 +1,81 @@
 /**
- * Audio Manager using Web Audio API for procedural sound effects and relaxing lo-fi background ambiance.
+ * Audio Manager supporting YouTube IFrame Player for custom music & 24/7 streams,
+ * alongside procedural Web Audio synthesizer ambiance and interactive SFX.
  */
+export const MUSIC_STATIONS = [
+  {
+    id: 'lofi-girl',
+    title: 'Lofi Girl • 24/7 Chill Beats',
+    category: 'Lofi / Study',
+    type: 'youtube',
+    videoId: 'jfKfPfyJRdk',
+    icon: '☕'
+  },
+  {
+    id: 'synthwave',
+    title: 'Synthwave Radio • Cyberpunk & Retro',
+    category: 'Synthwave / Chill',
+    type: 'youtube',
+    videoId: '4xDzrJKXOOY',
+    icon: '🌌'
+  },
+  {
+    id: 'chillhop',
+    title: 'Chillhop Cafe • Jazzy Relaxing Beats',
+    category: 'Jazz / Lofi',
+    type: 'youtube',
+    videoId: '5yx6BWlEVcY',
+    icon: '🎷'
+  },
+  {
+    id: 'deep-focus',
+    title: 'Coding & Deep Focus Flow',
+    category: 'Ambient / Coding',
+    type: 'youtube',
+    videoId: '5qap5aO4i9A',
+    icon: '🎧'
+  },
+  {
+    id: 'ghibli-piano',
+    title: 'Studio Ghibli Piano Melodies',
+    category: 'Peaceful Piano',
+    type: 'youtube',
+    videoId: 'tfwV4Y8f_a4',
+    icon: '🎹'
+  },
+  {
+    id: 'procedural-synth',
+    title: 'Procedural Ambient Synthesizer',
+    category: 'Web Audio Synth',
+    type: 'synth',
+    videoId: null,
+    icon: '🎛️'
+  }
+];
+
 export default class AudioManager {
   constructor() {
     this.audioCtx = null;
-    this.isMuted = true; // start muted by default for auto-play policy
+    this.isMuted = true;
+    this.volume = 70; // 0 - 100
+    
+    // Web Audio Procedural Ambiance State
     this.ambientGain = null;
     this.isAmbiancePlaying = false;
     this.ambientInterval = null;
+
+    // YouTube Player State
+    this.ytPlayer = null;
+    this.isYtReady = false;
+    this.currentStation = MUSIC_STATIONS[0];
+    this.currentTrackTitle = MUSIC_STATIONS[0].title;
+    this.isPlaying = false;
+    this.onStateChangeCallback = null;
+
+    this.initYouTubeAPI();
   }
 
-  init() {
+  initAudioContext() {
     if (this.audioCtx) return;
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -20,28 +85,261 @@ export default class AudioManager {
     }
   }
 
-  toggleMute() {
-    this.init();
+  // -------------------------------------------------------------
+  // YouTube IFrame API Integration
+  // -------------------------------------------------------------
+  initYouTubeAPI() {
+    // If YouTube API is already loaded
+    if (window.YT && window.YT.Player) {
+      this.mountYouTubePlayer();
+      return;
+    }
+
+    // Set up global callback for when YT API is ready
+    const prevOnReady = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      if (prevOnReady) prevOnReady();
+      this.mountYouTubePlayer();
+    };
+
+    // Dynamically insert YouTube iframe API script if not already present
+    if (!document.getElementById('yt-iframe-api-script')) {
+      const tag = document.createElement('script');
+      tag.id = 'yt-iframe-api-script';
+      tag.src = 'https://www.youtube.com/iframe_api';
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    }
+  }
+
+  mountYouTubePlayer() {
+    let mountEl = document.getElementById('youtube-player-mount');
+    if (!mountEl) {
+      mountEl = document.createElement('div');
+      mountEl.id = 'youtube-player-mount';
+      mountEl.style.cssText = 'position:fixed; bottom:-200px; left:-200px; width:100px; height:100px; opacity:0.001; pointer-events:none; z-index:-1;';
+      document.body.appendChild(mountEl);
+    }
+
+    try {
+      this.ytPlayer = new window.YT.Player('youtube-player-mount', {
+        height: '100',
+        width: '100',
+        videoId: this.currentStation.videoId || 'jfKfPfyJRdk',
+        playerVars: {
+          autoplay: 0,
+          controls: 0,
+          disablekb: 1,
+          fs: 0,
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1,
+          enablejsapi: 1,
+          origin: window.location.origin
+        },
+        events: {
+          onReady: (event) => {
+            this.isYtReady = true;
+            this.ytPlayer.setVolume(this.volume);
+            if (this.isPlaying && this.currentStation.type === 'youtube') {
+              event.target.playVideo();
+            }
+          },
+          onStateChange: (event) => {
+            // YT.PlayerState.PLAYING = 1, PAUSED = 2, BUFFERING = 3, ENDED = 0
+            if (event.data === window.YT.PlayerState.PLAYING) {
+              this.isPlaying = true;
+              this.isMuted = false;
+            } else if (event.data === window.YT.PlayerState.PAUSED || event.data === window.YT.PlayerState.ENDED) {
+              if (this.currentStation.type === 'youtube') {
+                this.isPlaying = false;
+              }
+            }
+            this.notifyState();
+          },
+          onError: (event) => {
+            console.warn("YouTube Player error:", event.data, "Falling back to procedural Lo-Fi synth.");
+            // Graceful fallback to procedural synth
+            this.playProceduralSynth();
+            this.notifyState();
+          }
+        }
+      });
+    } catch (e) {
+      console.warn("Error mounting YouTube Player", e);
+    }
+  }
+
+  setOnStateChange(cb) {
+    this.onStateChangeCallback = cb;
+  }
+
+  notifyState() {
+    if (typeof this.onStateChangeCallback === 'function') {
+      this.onStateChangeCallback({
+        isPlaying: this.isPlaying,
+        isMuted: this.isMuted,
+        station: this.currentStation,
+        title: this.currentTrackTitle,
+        volume: this.volume
+      });
+    }
+  }
+
+  // Helper to extract clean video ID from various YouTube URL formats
+  extractYouTubeId(urlOrId) {
+    if (!urlOrId) return null;
+    const cleanStr = urlOrId.trim();
+    
+    // Direct 11 character ID
+    if (/^[a-zA-Z0-9_-]{11}$/.test(cleanStr)) {
+      return cleanStr;
+    }
+
+    // Standard YouTube URL formats
+    const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|live|watch)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = cleanStr.match(regExp);
+    return (match && match[1]) ? match[1] : null;
+  }
+
+  // Play a custom YouTube URL or Video ID
+  loadCustomYouTube(urlOrId, customTitle = null) {
+    const videoId = this.extractYouTubeId(urlOrId);
+    if (!videoId) {
+      return { success: false, message: 'Invalid YouTube URL or Video ID.' };
+    }
+
+    const title = customTitle || `Custom Track (${videoId})`;
+    this.currentStation = {
+      id: `custom-${videoId}`,
+      title: title,
+      category: 'Custom YouTube Stream',
+      type: 'youtube',
+      videoId: videoId,
+      icon: '▶️'
+    };
+    this.currentTrackTitle = title;
+
+    this.playCurrentStation();
+    return { success: true, videoId: videoId, title: title };
+  }
+
+  // Switch to a preset station or synth
+  selectStation(stationId) {
+    const station = MUSIC_STATIONS.find(s => s.id === stationId);
+    if (!station) return;
+
+    this.currentStation = station;
+    this.currentTrackTitle = station.title;
+    this.playCurrentStation();
+  }
+
+  playCurrentStation() {
+    this.initAudioContext();
     if (this.audioCtx && this.audioCtx.state === 'suspended') {
       this.audioCtx.resume();
     }
-    this.isMuted = !this.isMuted;
-    if (!this.isMuted) {
-      this.startAmbiance();
-      this.playWhoosh();
-    } else {
+
+    if (this.currentStation.type === 'youtube') {
       this.stopAmbiance();
+      if (this.isYtReady && this.ytPlayer) {
+        try {
+          this.ytPlayer.loadVideoById(this.currentStation.videoId);
+          this.ytPlayer.setVolume(this.volume);
+          this.ytPlayer.playVideo();
+          this.isPlaying = true;
+          this.isMuted = false;
+        } catch (e) {
+          console.warn("Could not load YouTube video", e);
+          this.playProceduralSynth();
+        }
+      } else {
+        this.isPlaying = true;
+        this.isMuted = false;
+      }
+    } else {
+      // Procedural Synth
+      if (this.isYtReady && this.ytPlayer) {
+        try { this.ytPlayer.pauseVideo(); } catch (e) {}
+      }
+      this.playProceduralSynth();
     }
-    return !this.isMuted;
+
+    this.notifyState();
   }
 
+  playProceduralSynth() {
+    this.initAudioContext();
+    this.isMuted = false;
+    this.isPlaying = true;
+    this.startAmbiance();
+  }
+
+  togglePlayPause() {
+    this.initAudioContext();
+    if (this.audioCtx && this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume();
+    }
+
+    if (this.isPlaying) {
+      this.pause();
+    } else {
+      this.play();
+    }
+    return this.isPlaying;
+  }
+
+  play() {
+    this.initAudioContext();
+    this.isMuted = false;
+    this.isPlaying = true;
+
+    if (this.currentStation.type === 'youtube' && this.isYtReady && this.ytPlayer) {
+      try {
+        this.ytPlayer.playVideo();
+      } catch (e) {
+        this.startAmbiance();
+      }
+    } else {
+      this.startAmbiance();
+    }
+    this.notifyState();
+  }
+
+  pause() {
+    this.isPlaying = false;
+    if (this.isYtReady && this.ytPlayer) {
+      try { this.ytPlayer.pauseVideo(); } catch (e) {}
+    }
+    this.stopAmbiance();
+    this.notifyState();
+  }
+
+  setVolume(vol) {
+    this.volume = Math.max(0, Math.min(100, vol));
+    if (this.isYtReady && this.ytPlayer) {
+      try {
+        this.ytPlayer.setVolume(this.volume);
+      } catch (e) {}
+    }
+    if (this.ambientGain && this.audioCtx) {
+      const normalizedGain = (this.volume / 100) * 0.12;
+      this.ambientGain.gain.setValueAtTime(normalizedGain, this.audioCtx.currentTime);
+    }
+    this.notifyState();
+  }
+
+  // -------------------------------------------------------------
+  // Procedural Lo-Fi Chords Generator (Fallback & Offline)
+  // -------------------------------------------------------------
   startAmbiance() {
-    if (this.isMuted || !this.audioCtx || this.isAmbiancePlaying) return;
+    if (!this.audioCtx || this.isAmbiancePlaying) return;
     this.isAmbiancePlaying = true;
     
     // Master ambient gain
     this.ambientGain = this.audioCtx.createGain();
-    this.ambientGain.gain.setValueAtTime(0.08, this.audioCtx.currentTime);
+    const normalizedGain = (this.volume / 100) * 0.12;
+    this.ambientGain.gain.setValueAtTime(normalizedGain, this.audioCtx.currentTime);
     this.ambientGain.connect(this.audioCtx.destination);
 
     // Warm Lo-Fi chord progression generator: Cmaj7 -> Am7 -> Dm7 -> G7
@@ -54,7 +352,7 @@ export default class AudioManager {
     let chordIdx = 0;
 
     const playChord = () => {
-      if (!this.isAmbiancePlaying || this.isMuted || !this.audioCtx) return;
+      if (!this.isAmbiancePlaying || !this.isPlaying || !this.audioCtx) return;
       const currentChord = chords[chordIdx % chords.length];
       chordIdx++;
 
@@ -94,12 +392,18 @@ export default class AudioManager {
       this.ambientInterval = null;
     }
     if (this.ambientGain && this.audioCtx) {
-      this.ambientGain.gain.linearRampToValueAtTime(0.001, this.audioCtx.currentTime + 0.5);
+      try {
+        this.ambientGain.gain.linearRampToValueAtTime(0.001, this.audioCtx.currentTime + 0.3);
+      } catch (e) {}
     }
   }
 
+  // -------------------------------------------------------------
+  // UI & Interactive Sound Effects
+  // -------------------------------------------------------------
   playWhoosh() {
-    if (this.isMuted || !this.audioCtx) return;
+    this.initAudioContext();
+    if (!this.audioCtx) return;
     try {
       const now = this.audioCtx.currentTime;
       const osc = this.audioCtx.createOscillator();
@@ -129,7 +433,8 @@ export default class AudioManager {
   }
 
   playClick() {
-    if (this.isMuted || !this.audioCtx) return;
+    this.initAudioContext();
+    if (!this.audioCtx) return;
     try {
       const now = this.audioCtx.currentTime;
       const osc = this.audioCtx.createOscillator();
@@ -139,7 +444,7 @@ export default class AudioManager {
       osc.frequency.setValueAtTime(800, now);
       osc.frequency.exponentialRampToValueAtTime(300, now + 0.05);
 
-      gain.gain.setValueAtTime(0.09, now);
+      gain.gain.setValueAtTime(0.08, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
 
       osc.connect(gain);
@@ -151,7 +456,8 @@ export default class AudioManager {
   }
 
   playRubikTurn() {
-    if (this.isMuted || !this.audioCtx) return;
+    this.initAudioContext();
+    if (!this.audioCtx) return;
     try {
       const now = this.audioCtx.currentTime;
       const osc = this.audioCtx.createOscillator();
@@ -178,7 +484,8 @@ export default class AudioManager {
   }
 
   playMarkerDraw() {
-    if (this.isMuted || !this.audioCtx) return;
+    this.initAudioContext();
+    if (!this.audioCtx) return;
     try {
       const now = this.audioCtx.currentTime;
       const osc = this.audioCtx.createOscillator();
@@ -199,7 +506,8 @@ export default class AudioManager {
   }
 
   playArcadeBeep(type = 'blip') {
-    if (this.isMuted || !this.audioCtx) return;
+    this.initAudioContext();
+    if (!this.audioCtx) return;
     try {
       const now = this.audioCtx.currentTime;
       const osc = this.audioCtx.createOscillator();
@@ -236,7 +544,8 @@ export default class AudioManager {
   }
 
   playTrophyFanfare() {
-    if (this.isMuted || !this.audioCtx) return;
+    this.initAudioContext();
+    if (!this.audioCtx) return;
     try {
       const now = this.audioCtx.currentTime;
       const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
@@ -256,3 +565,4 @@ export default class AudioManager {
     } catch (e) {}
   }
 }
+

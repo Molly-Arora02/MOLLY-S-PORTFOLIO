@@ -5,7 +5,7 @@ export const mollyData = {
     tagline: "Building at the intersection of AI/ML and frontend engineering • Shipped live Voice AI products • Top 8 PAN India DevSummit 2026",
     status: "Seeking AI / Frontend Internships",
     location: "Delhi, India",
-    phone: "+91 7037836464",
+    phone: "Available upon Recruiter Request (Privacy Protected)",
     email: "aroramolly180@gmail.com",
     linkedin: "https://www.linkedin.com/in/molly-arora-20b11124a",
     github: "https://github.com/Molly-Arora02",

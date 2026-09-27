@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import CoffeeSteam from './CoffeeSteam.js';
 import RubiksCube from './RubiksCube.js';
 import Whiteboard from './Whiteboard.js';
 import VisionBoard from './VisionBoard.js';
@@ -95,8 +94,8 @@ export default class Room {
     this.warmBounce.position.set(-4, 3, 4);
     this.scene.add(this.warmBounce);
 
-    // 5. Desk Lightbar / Monitor Downward Task Light (Warm LED)
-    this.deskTaskLight = new THREE.PointLight(0xffedd5, 1.8, 3.5, 2);
+    // 5. Desk Lightbar / Monitor Downward Task Light (Turned OFF)
+    this.deskTaskLight = new THREE.PointLight(0xffedd5, 0.0, 3.5, 2);
     this.deskTaskLight.position.set(0, 1.85, -0.6);
     this.scene.add(this.deskTaskLight);
 
@@ -105,15 +104,16 @@ export default class Room {
     this.tableLampLight.position.set(1.65, 1.35, 0.75);
     this.scene.add(this.tableLampLight);
 
-    // 7. Subtle Monitor Screen Ambilight
-    this.monitorGlow = new THREE.PointLight(0xe0f2fe, 0.9, 2.8, 2);
+    // 7. Monitor Screen Ambilight (Turned OFF)
+    this.monitorGlow = new THREE.PointLight(0xe0f2fe, 0.0, 2.8, 2);
     this.monitorGlow.position.set(0, 1.45, -0.65);
     this.scene.add(this.monitorGlow);
   }
 
   buildRoomStructure() {
     // --- REALISTIC OAK HARDWOOD FLOOR WITH 3D NORMAL & ROUGHNESS MAPS ---
-    const floorGeo = new THREE.BoxGeometry(7.4, 0.2, 7.4);
+    // Seamless 7.2m x 7.2m floor platform perfectly aligned with outer wall boundaries
+    const floorGeo = new THREE.BoxGeometry(7.2, 0.2, 7.2);
     const floorMat = new THREE.MeshStandardMaterial({
       map: this.woodFloorTexture,
       normalMap: this.woodFloorNormal,
@@ -123,9 +123,15 @@ export default class Room {
       metalness: 0.05
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.position.y = -0.1;
+    floor.position.set(0, -0.1, 0);
     floor.receiveShadow = true;
     this.group.add(floor);
+
+    // Architectural Dark Plinth / Foundation Under-Platform (prevents bottom gaps)
+    const plinthMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8 });
+    const plinth = new THREE.Mesh(new THREE.BoxGeometry(7.22, 0.08, 7.22), plinthMat);
+    plinth.position.set(0, -0.24, 0);
+    this.group.add(plinth);
 
     // --- REALISTIC MATTE PAINTED WALLS WITH PLASTER NORMAL MAP ---
     const wallMat = new THREE.MeshStandardMaterial({
@@ -136,42 +142,62 @@ export default class Room {
       metalness: 0.02
     });
 
-    const backWallGeo = new THREE.BoxGeometry(7.4, 4.6, 0.2);
+    // Left Wall: Perfectly aligned from outer edge x = -3.6 to inner face x = -3.4, z = -3.6 to +3.6
+    const leftWallGeo = new THREE.BoxGeometry(0.2, 4.6, 7.2);
+    const leftWall = new THREE.Mesh(leftWallGeo, wallMat);
+    leftWall.position.set(-3.5, 2.3, 0);
+    leftWall.receiveShadow = true;
+    this.group.add(leftWall);
+
+    // Back Wall: Perfectly aligned from x = -3.4 (flush with left wall inner face) to x = +3.6, z = -3.6 to -3.4
+    const backWallGeo = new THREE.BoxGeometry(7.0, 4.6, 0.2);
     const backWall = new THREE.Mesh(backWallGeo, wallMat);
-    backWall.position.set(0, 2.2, -3.5);
+    backWall.position.set(0.1, 2.3, -3.5);
     backWall.receiveShadow = true;
     this.group.add(backWall);
 
-    const leftWallGeo = new THREE.BoxGeometry(0.2, 4.6, 7.4);
-    const leftWall = new THREE.Mesh(leftWallGeo, wallMat);
-    leftWall.position.set(-3.5, 2.2, 0);
-    leftWall.receiveShadow = true;
-    this.group.add(leftWall);
+    // Front Wall Finished End-Cap Trim (Clean architectural corner seal at z = 3.6)
+    const endCapMat = new THREE.MeshStandardMaterial({ color: 0xe2e0d8, roughness: 0.85 });
+    const leftWallEndCap = new THREE.Mesh(new THREE.BoxGeometry(0.202, 4.602, 0.01), endCapMat);
+    leftWallEndCap.position.set(-3.5, 2.3, 3.6);
+    this.group.add(leftWallEndCap);
+
+    // Right Back Wall Finished End-Cap Trim (at x = 3.6)
+    const backWallEndCap = new THREE.Mesh(new THREE.BoxGeometry(0.01, 4.602, 0.202), endCapMat);
+    backWallEndCap.position.set(3.6, 2.3, -3.5);
+    this.group.add(backWallEndCap);
 
     // --- REALISTIC WHITE BASEBOARDS (SKIRTING BOARDS) ---
     const baseboardMat = new THREE.MeshStandardMaterial({
       color: 0xfafafa,
-      roughness: 0.4,
+      roughness: 0.35,
       metalness: 0.05
     });
 
-    const bbBack = new THREE.Mesh(new THREE.BoxGeometry(7.36, 0.14, 0.03), baseboardMat);
-    bbBack.position.set(0, 0.07, -3.385);
-    this.group.add(bbBack);
-
-    const bbLeft = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.14, 7.36), baseboardMat);
-    bbLeft.position.set(-3.385, 0.07, 0);
+    // Left Wall Baseboard: Seamlessly runs from back wall (z = -3.4) to front cutaway edge (z = +3.6)
+    const bbLeft = new THREE.Mesh(new THREE.BoxGeometry(0.024, 0.12, 7.0), baseboardMat);
+    bbLeft.position.set(-3.388, 0.06, 0.1);
     this.group.add(bbLeft);
+
+    // Finished Front Return for Left Baseboard at cutaway edge
+    const bbLeftReturn = new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.122, 0.012), baseboardMat);
+    bbLeftReturn.position.set(-3.388, 0.06, 3.6);
+    this.group.add(bbLeftReturn);
+
+    // Back Wall Baseboard: Runs from inner left baseboard (x = -3.376) to right edge (x = +3.6)
+    const bbBack = new THREE.Mesh(new THREE.BoxGeometry(6.976, 0.12, 0.024), baseboardMat);
+    bbBack.position.set(0.112, 0.06, -3.388);
+    this.group.add(bbBack);
 
     // --- CEILING CROWN MOLDING ---
     const crownMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.5 });
-    const crownBack = new THREE.Mesh(new THREE.BoxGeometry(7.36, 0.08, 0.05), crownMat);
-    crownBack.position.set(0, 4.46, -3.38);
-    this.group.add(crownBack);
-
-    const crownLeft = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.08, 7.36), crownMat);
-    crownLeft.position.set(-3.38, 4.46, 0);
+    const crownLeft = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 7.0), crownMat);
+    crownLeft.position.set(-3.38, 4.56, 0.1);
     this.group.add(crownLeft);
+
+    const crownBack = new THREE.Mesh(new THREE.BoxGeometry(6.98, 0.08, 0.04), crownMat);
+    crownBack.position.set(0.11, 4.56, -3.38);
+    this.group.add(crownBack);
 
     // --- REALISTIC WINDOW ---
     this.buildWindow();
@@ -475,12 +501,12 @@ export default class Room {
     this.deskGroup = new THREE.Group();
     this.deskGroup.position.set(0, 0, -0.8);
 
-    // Solid European Natural Oak Tabletop (Warm realistic wood)
+    // Solid European Natural Oak Tabletop (Warm realistic matte wood)
     const topGeo = new THREE.BoxGeometry(3.3, 0.075, 1.4);
     const topMat = new THREE.MeshStandardMaterial({
       map: this.furnitureWoodTexture,
-      roughness: 0.35,
-      metalness: 0.05
+      roughness: 0.8,
+      metalness: 0.0
     });
     const top = new THREE.Mesh(topGeo, topMat);
     top.position.y = 0.96;
@@ -528,8 +554,8 @@ export default class Room {
     const matGeo = new THREE.BoxGeometry(2.3, 0.008, 0.8);
     const matMaterial = new THREE.MeshStandardMaterial({
       color: 0x1f2937,
-      roughness: 0.75,
-      metalness: 0.05
+      roughness: 0.9,
+      metalness: 0.0
     });
     const deskMatMesh = new THREE.Mesh(matGeo, matMaterial);
     deskMatMesh.position.set(0, 1.002, 0.08);
@@ -568,10 +594,6 @@ export default class Room {
     );
     coffeeLiquid.position.set(1.05, 1.085, -0.1);
     this.deskGroup.add(coffeeLiquid);
-
-    // Animated Coffee Steam Shader
-    this.coffeeSteam = new CoffeeSteam(new THREE.Vector3(1.05, 1.1, -0.9));
-    this.scene.add(this.coffeeSteam.mesh);
 
     // Potted Desk Monstera / Succulent Plant
     const potGeo = new THREE.CylinderGeometry(0.08, 0.06, 0.11, 20);
@@ -803,10 +825,10 @@ export default class Room {
     this.leftScreenTexture = new THREE.CanvasTexture(this.leftScreenCanvas);
     const leftScreenMat = new THREE.MeshStandardMaterial({
       map: this.leftScreenTexture,
-      emissive: 0xffffff,
-      emissiveMap: this.leftScreenTexture,
-      emissiveIntensity: 0.95,
-      roughness: 0.15
+      roughness: 0.7,
+      metalness: 0.0,
+      emissive: 0x000000,
+      emissiveIntensity: 0.0
     });
 
     const leftScreen = new THREE.Mesh(new THREE.PlaneGeometry(1.18, 0.7), leftScreenMat);
@@ -835,10 +857,10 @@ export default class Room {
     this.rightScreenTexture = new THREE.CanvasTexture(this.rightScreenCanvas);
     const rightScreenMat = new THREE.MeshStandardMaterial({
       map: this.rightScreenTexture,
-      emissive: 0xffffff,
-      emissiveMap: this.rightScreenTexture,
-      emissiveIntensity: 0.95,
-      roughness: 0.15
+      roughness: 0.7,
+      metalness: 0.0,
+      emissive: 0x000000,
+      emissiveIntensity: 0.0
     });
 
     const rightScreen = new THREE.Mesh(new THREE.PlaneGeometry(1.18, 0.7), rightScreenMat);
@@ -848,18 +870,6 @@ export default class Room {
     this.interactiveObjects.push(rightScreen);
 
     this.deskGroup.add(rightMonitorGroup);
-
-    // Modern BenQ ScreenBar LED Monitor Lightbar mounted on top of Left Monitor
-    const barMat = new THREE.MeshStandardMaterial({ color: 0x18181b, metalness: 0.9, roughness: 0.2 });
-    const screenBar = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.52, 16), barMat);
-    screenBar.rotation.z = Math.PI / 2;
-    screenBar.position.set(0, 0.39, 0.02);
-    leftMonitorGroup.add(screenBar);
-
-    // Lightbar counterweight mount clamp
-    const barClamp = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.05, 0.07), barMat);
-    barClamp.position.set(0, 0.38, -0.01);
-    leftMonitorGroup.add(barClamp);
   }
 
   drawLeftScreenTexture() {
@@ -1542,9 +1552,6 @@ export default class Room {
   }
 
   update(delta, isRubikInspecting = false) {
-    if (this.coffeeSteam) {
-      this.coffeeSteam.update(delta);
-    }
     if (this.rubiksCube) {
       this.rubiksCube.update(delta, isRubikInspecting);
     }
