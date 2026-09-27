@@ -43,6 +43,11 @@ export default class Camera {
         position: new THREE.Vector3(-0.6, 2.1, -1.8),
         target: new THREE.Vector3(-1.8, 2.0, -3.25),
         fov: 38
+      },
+      vision: {
+        position: new THREE.Vector3(-0.15, 2.85, -1.0),
+        target: new THREE.Vector3(-0.15, 2.85, -3.36),
+        fov: 42
       }
     };
 

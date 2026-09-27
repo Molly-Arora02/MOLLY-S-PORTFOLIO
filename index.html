@@ -34,6 +34,31 @@
     </div>
 
     <div class="hud-actions">
+      <!-- Live Clock & Interactive Calendar Button -->
+      <button id="nav-clock-btn" class="hud-btn clock-pill" title="Live Clock & Interactive Calendar Planner">
+        <span class="icon">🕒</span>
+        <span id="nav-live-clock">01:21:47 AM</span>
+        <span style="opacity:0.4; margin:0 2px;">•</span>
+        <span id="nav-live-date">Sun, Sep 27</span>
+      </button>
+
+      <!-- Real-time Weather & Lighting Mode Selector -->
+      <div class="weather-time-control">
+        <button id="weather-pill-btn" class="hud-btn weather-pill" title="Toggle Real-Time Room Weather & Lighting">
+          <span id="weather-icon" class="weather-icon">☀️</span>
+          <span id="weather-label" class="weather-label">Live: Day</span>
+          <span class="pill-chevron">▾</span>
+        </button>
+        <div class="weather-dropdown hidden" id="weather-dropdown">
+          <button data-mode="auto" class="dropdown-item active">⚡ Auto (My Real Location)</button>
+          <button data-mode="morning" class="dropdown-item">🌅 Morning (Dawn Sun)</button>
+          <button data-mode="day" class="dropdown-item">☀️ Day (High Sun)</button>
+          <button data-mode="evening" class="dropdown-item">🌇 Evening (Golden Hour)</button>
+          <button data-mode="night" class="dropdown-item">🌙 Night (Lamps On)</button>
+          <button data-mode="rain" class="dropdown-item">🌧️ Rain (Window Streaks)</button>
+        </div>
+      </div>
+
       <button id="audio-toggle-btn" class="hud-btn" title="Toggle Lo-Fi Ambient & SFX">
         <span class="icon">🔇</span> Sound: OFF
       </button>
@@ -71,10 +96,25 @@
     <button class="nav-btn" data-view="trophy" title="Hackathon Trophies">
       <span>🏆 Trophies</span>
     </button>
+    <button class="nav-btn" data-view="vision" title="Vision Board & Manifestations">
+      <span>🎯 Vision Board</span>
+    </button>
     <button class="nav-btn" data-view="resume" title="View Full Resume">
       <span>📄 Resume</span>
     </button>
   </nav>
+
+  <!-- Contextual Panel: Vision Board -->
+  <div id="vision-panel" class="context-panel glass-panel hidden">
+    <div class="monitor-card-header">
+      <h2><span>✨</span> Vision Board • 2026 & Beyond</h2>
+      <span class="status-badge" style="color:var(--accent-amber); border-color:var(--accent-amber);">Faith • Dreams • Manifestation</span>
+    </div>
+    <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">
+      Rooted in spiritual devotion & faith, driven to engineer world-class AI systems at Google, explore Japan, achieve peak fitness & radiance.
+    </p>
+    <div id="vision-grid-container" class="vision-grid"></div>
+  </div>
 
   <!-- Contextual Panel: Dual Monitors (Projects & Timeline) -->
   <div id="monitors-panel" class="context-panel glass-panel hidden">
@@ -122,37 +162,162 @@
     </div>
   </div>
 
-  <!-- Contextual Panel: Whiteboard Drawing Tools -->
-  <div id="whiteboard-panel" class="context-panel glass-panel hidden">
+  <!-- Contextual Panel: AI Smart Board Studio -->
+  <div id="whiteboard-panel" class="context-panel glass-panel hidden" style="width:380px;">
     <div class="monitor-card-header">
-      <h2><span>🎨</span> Interactive Whiteboard</h2>
-      <span class="status-badge">Draw on 3D Wall</span>
-    </div>
-    <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:10px;">
-      Click and drag on the 3D wall to sketch notes or choose a diagram preset:
-    </p>
-
-    <div class="wb-colors">
-      <button class="wb-color-btn active" data-color="#06b6d4" style="background:#06b6d4;" title="Cyan Marker"></button>
-      <button class="wb-color-btn" data-color="#6366f1" style="background:#6366f1;" title="Indigo Marker"></button>
-      <button class="wb-color-btn" data-color="#10b981" style="background:#10b981;" title="Green Marker"></button>
-      <button class="wb-color-btn" data-color="#f43f5e" style="background:#f43f5e;" title="Coral Marker"></button>
-      <button class="wb-color-btn" data-color="#18181b" style="background:#18181b;" title="Black Marker"></button>
-      <button class="wb-color-btn" data-color="eraser" style="background:#e2e8f0; color:#000; font-size:12px; display:flex; align-items:center; justify-content:center;" title="Eraser">🧹</button>
+      <h2><span>⚡</span> AI Smart Board Studio</h2>
+      <span class="status-badge" style="color:var(--accent-amber); border-color:var(--accent-amber);">Interactive 3D Lab</span>
     </div>
 
-    <div class="wb-presets">
-      <button class="wb-preset-btn" data-preset="neural">🧠 Load Neural Network Graph</button>
-      <button class="wb-preset-btn" data-preset="tree">🌲 Load Balanced BST (DSA)</button>
+    <!-- Smart Board Feature Tabs -->
+    <div class="sb-tabs">
+      <button class="sb-tab-btn active" data-tab="draw">✏️ Draw</button>
+      <button class="sb-tab-btn" data-tab="text">✍️ Type</button>
+      <button class="sb-tab-btn" data-tab="image">🖼️ Picture</button>
+      <button class="sb-tab-btn" data-tab="brainstorm">💡 Brainstorm</button>
+      <button class="sb-tab-btn" data-tab="music">🎵 Music</button>
     </div>
 
-    <button id="wb-clear-btn" class="hud-btn" style="width:100%; margin-top:8px;">🗑️ Clear Whiteboard</button>
+    <!-- TAB 1: Draw & Stylus -->
+    <div id="sb-tab-draw" class="sb-tab-content active">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:0.75rem; color:var(--text-muted);">Marker Colors:</span>
+        <div style="display:flex; gap:6px;">
+          <button id="wb-tool-pen" class="wb-tool-btn active" title="Pen">🖊️</button>
+          <button id="wb-tool-highlighter" class="wb-tool-btn" title="Highlighter">🖍️</button>
+          <button id="wb-tool-eraser" class="wb-tool-btn" title="Eraser">🧹</button>
+        </div>
+      </div>
+
+      <div class="wb-colors">
+        <button class="wb-color-btn active" data-color="#38bdf8" style="background:#38bdf8;" title="Sky Blue"></button>
+        <button class="wb-color-btn" data-color="#f59e0b" style="background:#f59e0b;" title="Amber Gold"></button>
+        <button class="wb-color-btn" data-color="#10b981" style="background:#10b981;" title="Emerald"></button>
+        <button class="wb-color-btn" data-color="#ec4899" style="background:#ec4899;" title="Rose"></button>
+        <button class="wb-color-btn" data-color="#8b5cf6" style="background:#8b5cf6;" title="Purple"></button>
+        <button class="wb-color-btn" data-color="#ffffff" style="background:#ffffff;" title="White"></button>
+        <button class="wb-color-btn" data-color="#18181b" style="background:#18181b;" title="Black"></button>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <button id="wb-undo-btn" class="hud-btn" style="flex:1;">↩️ Undo</button>
+        <button id="wb-clear-btn" class="hud-btn" style="flex:1;">🗑️ Clear</button>
+      </div>
+    </div>
+
+    <!-- TAB 2: Type Text & Sticky Notes -->
+    <div id="sb-tab-text" class="sb-tab-content">
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.78rem; color:var(--text-muted); display:block; margin-bottom:4px;">Type Heading / Code Text:</label>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="wb-text-input" placeholder="e.g. LLM Inference Pipeline" style="flex:1; background:rgba(0,0,0,0.4); border:1px solid var(--border-glass); border-radius:6px; padding:6px 10px; color:#fff; font-size:0.85rem;">
+          <button id="wb-add-text-btn" class="hud-btn primary" style="padding:6px 12px; font-size:0.8rem;">➕ Place</button>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--border-glass); padding-top:10px;">
+        <label style="font-size:0.78rem; color:var(--text-muted); display:block; margin-bottom:4px;">Add Brainstorm Sticky Note:</label>
+        <input type="text" id="wb-sticky-title" placeholder="Note Title (e.g. Next Sprint)" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.4); border:1px solid var(--border-glass); border-radius:6px; padding:6px 10px; color:#fff; font-size:0.82rem; margin-bottom:6px;">
+        <textarea id="wb-sticky-text" rows="2" placeholder="Note contents or bullet points..." style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.4); border:1px solid var(--border-glass); border-radius:6px; padding:6px 10px; color:#fff; font-size:0.82rem; margin-bottom:6px;"></textarea>
+        
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; gap:6px;">
+            <button class="wb-note-color-btn active" data-color="#fef08a" style="background:#fef08a; width:20px; height:20px; border-radius:50%; border:none; cursor:pointer;" title="Yellow"></button>
+            <button class="wb-note-color-btn" data-color="#a7f3d0" style="background:#a7f3d0; width:20px; height:20px; border-radius:50%; border:none; cursor:pointer;" title="Mint"></button>
+            <button class="wb-note-color-btn" data-color="#fbcfe8" style="background:#fbcfe8; width:20px; height:20px; border-radius:50%; border:none; cursor:pointer;" title="Rose"></button>
+            <button class="wb-note-color-btn" data-color="#bae6fd" style="background:#bae6fd; width:20px; height:20px; border-radius:50%; border:none; cursor:pointer;" title="Blue"></button>
+          </div>
+          <button id="wb-add-sticky-btn" class="hud-btn primary" style="padding:6px 14px; font-size:0.8rem;">📌 Pin Note</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: Insert Pictures & Stickers -->
+    <div id="sb-tab-image" class="sb-tab-content">
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.78rem; color:var(--text-muted); display:block; margin-bottom:6px;">Upload Image to Board:</label>
+        <input type="file" id="wb-image-upload" accept="image/*" style="display:none;">
+        <button id="wb-upload-trigger-btn" class="hud-btn" style="width:100%; padding:8px; font-size:0.82rem; justify-content:center;">
+          📁 Choose File / Photo from Computer
+        </button>
+      </div>
+
+      <div>
+        <label style="font-size:0.78rem; color:var(--text-muted); display:block; margin-bottom:6px;">Click to Stamp Sticker / Icon:</label>
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;">
+          <button class="wb-sticker-btn" data-emoji="🧠" data-label="AI Brain">🧠 Brain</button>
+          <button class="wb-sticker-btn" data-emoji="🚀" data-label="Rocket">🚀 Launch</button>
+          <button class="wb-sticker-btn" data-emoji="💡" data-label="Idea">💡 Idea</button>
+          <button class="wb-sticker-btn" data-emoji="⚡" data-label="Speed">⚡ Fast</button>
+          <button class="wb-sticker-btn" data-emoji="💻" data-label="Code">💻 Code</button>
+          <button class="wb-sticker-btn" data-emoji="🏆" data-label="Win">🏆 Goal</button>
+          <button class="wb-sticker-btn" data-emoji="🌸" data-label="Sakura">🌸 Japan</button>
+          <button class="wb-sticker-btn" data-emoji="🔥" data-label="Fire">🔥 Hot</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: Brainstorming Presets -->
+    <div id="sb-tab-brainstorm" class="sb-tab-content">
+      <div class="wb-presets">
+        <button class="wb-preset-btn" data-preset="neural">🧠 Neural Network Architecture</button>
+        <button class="wb-preset-btn" data-preset="system">🏗️ Microservices System Design</button>
+        <button class="wb-preset-btn" data-preset="kanban">📋 AI Sprint Kanban Board</button>
+        <button class="wb-preset-btn" data-preset="calendar">📅 Monthly Calendar & Milestones</button>
+        <button class="wb-preset-btn" data-preset="tree">🌲 Balanced BST / DSA</button>
+        <button class="wb-preset-btn" data-preset="blank">📄 Clean Grid Canvas</button>
+      </div>
+    </div>
+
+    <!-- TAB 5: YouTube & Music Player -->
+    <div id="sb-tab-music" class="sb-tab-content">
+      <div style="margin-bottom:10px;">
+        <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Paste YouTube Video URL / ID:</label>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="yt-url-input" placeholder="e.g. jfKfPfyJRdk or YouTube link" style="flex:1; background:rgba(0,0,0,0.4); border:1px solid var(--border-glass); border-radius:6px; padding:6px 8px; color:#fff; font-size:0.8rem;">
+          <button id="yt-load-btn" class="hud-btn primary" style="padding:6px 10px; font-size:0.78rem;">▶ Load</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:10px;">
+        <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Curated Lo-Fi & Focus Streams:</label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+          <button class="yt-preset-btn active" data-ytid="jfKfPfyJRdk" data-title="Lofi Girl • Study/Relax">🎧 Lofi Girl</button>
+          <button class="yt-preset-btn" data-ytid="5yx6BWlEVcY" data-title="Chillhop • Coffee & Code">☕ Chillhop</button>
+          <button class="yt-preset-btn" data-ytid="4xDzrJKXOOY" data-title="Synthwave • Cyber Coding">⚡ Synthwave</button>
+          <button class="yt-preset-btn" data-ytid="WPni755-Krg" data-title="Peaceful Piano • Focus">🎹 Piano Focus</button>
+        </div>
+      </div>
+
+      <!-- Embedded YouTube Video / Audio Frame -->
+      <div class="yt-frame-container" style="position:relative; width:100%; padding-bottom:56.25%; height:0; border-radius:8px; overflow:hidden; border:1px solid rgba(245,158,11,0.3); background:#000;">
+        <iframe id="youtube-smart-frame" src="https://www.youtube-nocookie.com/embed/jfKfPfyJRdk?enablejsapi=1&autoplay=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;"></iframe>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+        <span id="yt-now-playing" style="font-size:0.75rem; color:var(--accent-gold); font-weight:600;">🎵 Lofi Girl • Study/Relax</span>
+        <button id="yt-toggle-visualizer" class="hud-btn" style="font-size:0.72rem; padding:4px 8px;">📊 3D Visualizer: ON</button>
+      </div>
+    </div>
+
+    <!-- Smart Board Storage & Desktop Export Action Footer -->
+    <div style="margin-top:14px; padding-top:10px; border-top:1px solid var(--border-glass);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">💾 PERSISTENCE & EXPORT</span>
+        <span id="wb-auto-save-status" style="font-size:0.7rem; color:var(--accent-emerald);">● Auto-Saved</span>
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button id="wb-save-storage-btn" class="hud-btn" style="flex:1; font-size:0.75rem; padding:6px 8px;" title="Save to Browser LocalStorage">💾 Save Storage</button>
+        <button id="wb-load-storage-btn" class="hud-btn" style="flex:1; font-size:0.75rem; padding:6px 8px;" title="Restore Saved Board from Browser">📂 Restore</button>
+        <button id="wb-export-png-btn" class="hud-btn primary" style="flex:1.4; font-size:0.75rem; padding:6px 8px;" title="Download High-Res PNG to Desktop">📥 Export PNG</button>
+      </div>
+    </div>
   </div>
 
   <!-- Contextual Panel: Arcade Machine Controls -->
   <div id="arcade-panel" class="context-panel glass-panel hidden">
     <div class="monitor-card-header">
-      <h2><span>🕹️</span> Cyber Arcade Cabinet</h2>
+      <h2><span>🕹️</span> Retro Arcade Cabinet</h2>
       <span class="status-badge">Playable Mini-Games</span>
     </div>
 
@@ -267,41 +432,139 @@
   <!-- Contact Modal -->
   <div id="contact-modal" class="modal-container">
     <div class="modal-backdrop"></div>
-    <div class="modal-content" style="max-width:560px;">
+    <div class="modal-content" style="max-width:580px;">
       <button class="modal-close">&times;</button>
       <h2 style="font-size:1.5rem; font-weight:800; margin-bottom:6px;">Let's Connect & Collaborate 🚀</h2>
-      <p style="color:var(--text-secondary); font-size:0.88rem;">
+      <p style="color:var(--text-secondary); font-size:0.88rem; margin-bottom:16px;">
         Seeking AI Engineer or Frontend Developer internships to build production-grade, user-facing AI systems.
       </p>
 
       <form id="contact-form" class="contact-form">
         <div class="form-group">
-          <label for="name">Your Name</label>
-          <input type="text" id="name" placeholder="Name or Recruiter" required>
+          <label for="name">Your Name / Organization</label>
+          <input type="text" id="name" placeholder="e.g. Google Recruiter / Jane Doe" required>
         </div>
         <div class="form-group">
           <label for="email">Your Email</label>
           <input type="email" id="email" placeholder="recruiter@company.com" required>
         </div>
         <div class="form-group">
-          <label for="message">Message / Opportunity</label>
+          <label for="message">Message / Opportunity Details</label>
           <textarea id="message" rows="4" placeholder="Hi Molly, we would love to connect with you regarding our AI / Frontend internship..." required></textarea>
         </div>
-        <button type="submit" class="hud-btn primary" style="justify-content:center; padding:12px; font-size:1rem; margin-top:8px;">
-          Send Message ✨
-        </button>
+
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+          <button type="submit" id="send-mail-btn" class="hud-btn primary" style="justify-content:center; padding:12px; font-size:0.95rem; width:100%;">
+            🚀 Send via Default Mail App (Apple Mail / Outlook)
+          </button>
+          <button type="button" id="send-web-gmail-btn" class="hud-btn" style="justify-content:center; padding:10px; font-size:0.88rem; width:100%; border-color:rgba(239, 68, 68, 0.4); color:#fca5a5;">
+            🔴 Compose in Web Gmail Directly
+          </button>
+        </div>
       </form>
 
-      <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border-glass); display:flex; justify-content:space-around;">
-        <a href="mailto:aroramolly180@gmail.com" style="color:var(--accent-cyan); text-decoration:none; font-size:0.85rem;">
-          📧 aroramolly180@gmail.com
+      <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border-glass); display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center;">
+        <button id="copy-email-btn" class="hud-btn" style="font-size:0.8rem; padding:6px 12px; border-color:rgba(245, 158, 11, 0.4); color:var(--accent-gold);" title="Copy email to clipboard">
+          📋 Copy: aroramolly180@gmail.com
+        </button>
+        <a href="tel:+917037836464" style="color:var(--text-secondary); text-decoration:none; font-size:0.82rem; display:inline-flex; align-items:center; gap:6px;">
+          📞 +91 7037836464
         </a>
-        <a href="https://github.com/Molly-Arora02" target="_blank" rel="noreferrer" style="color:var(--accent-cyan); text-decoration:none; font-size:0.85rem;">
-          🐙 GitHub: Molly-Arora02
+        <a href="https://github.com/Molly-Arora02" target="_blank" rel="noreferrer" style="color:var(--text-secondary); text-decoration:none; font-size:0.82rem; display:inline-flex; align-items:center; gap:6px;">
+          🐙 GitHub
         </a>
-        <a href="https://www.linkedin.com/in/molly-arora-20b11124a" target="_blank" rel="noreferrer" style="color:var(--accent-cyan); text-decoration:none; font-size:0.85rem;">
-          🔗 LinkedIn Profile
+        <a href="https://www.linkedin.com/in/molly-arora-20b11124a" target="_blank" rel="noreferrer" style="color:var(--text-secondary); text-decoration:none; font-size:0.82rem; display:inline-flex; align-items:center; gap:6px;">
+          🔗 LinkedIn
         </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Smart Clock & Interactive Calendar Modal -->
+  <div id="calendar-modal" class="modal-container">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content" style="max-width:760px; max-height:90vh; overflow-y:auto;">
+      <button class="modal-close">&times;</button>
+      
+      <!-- Top Live Clock Bar & Timezones -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:1.6rem;">🕒</span>
+            <div>
+              <h2 id="modal-digital-clock" style="font-size:1.8rem; font-family:monospace; font-weight:800; color:#fff; line-height:1;">01:21:47 AM</h2>
+              <p id="modal-full-date" style="font-size:0.85rem; color:var(--accent-gold); font-weight:600; margin-top:2px;">Sunday, September 27, 2026</p>
+            </div>
+          </div>
+        </div>
+        <div class="status-badge" style="border-color:var(--accent-gold); color:var(--accent-gold);">
+          ⚡ Live Synchronized Clock & Planner
+        </div>
+      </div>
+
+      <!-- World Time Zones Mini Strip -->
+      <div class="world-clocks-strip">
+        <div class="world-clock-card">
+          <span class="tz-flag">🇮🇳</span>
+          <span class="tz-name">New Delhi (IST)</span>
+          <span class="tz-time" id="tz-time-delhi">--:-- --</span>
+        </div>
+        <div class="world-clock-card">
+          <span class="tz-flag">🇯🇵</span>
+          <span class="tz-name">Tokyo (JST)</span>
+          <span class="tz-time" id="tz-time-tokyo">--:-- --</span>
+        </div>
+        <div class="world-clock-card">
+          <span class="tz-flag">🇺🇸</span>
+          <span class="tz-name">San Francisco (PST)</span>
+          <span class="tz-time" id="tz-time-sf">--:-- --</span>
+        </div>
+        <div class="world-clock-card">
+          <span class="tz-flag">🇬🇧</span>
+          <span class="tz-name">London (GMT)</span>
+          <span class="tz-time" id="tz-time-london">--:-- --</span>
+        </div>
+        <div class="world-clock-card">
+          <span class="tz-flag">🇺🇸</span>
+          <span class="tz-name">New York (EST)</span>
+          <span class="tz-time" id="tz-time-ny">--:-- --</span>
+        </div>
+      </div>
+
+      <!-- Calendar Month Navigation -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin:16px 0 12px 0;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button id="cal-prev-month-btn" class="hud-btn" style="padding:4px 10px;">◀</button>
+          <h3 id="cal-month-title" style="font-size:1.15rem; font-weight:700; color:#fff; min-width:180px; text-align:center;">September 2026</h3>
+          <button id="cal-next-month-btn" class="hud-btn" style="padding:4px 10px;">▶</button>
+        </div>
+        <button id="cal-today-btn" class="hud-btn primary" style="font-size:0.78rem; padding:4px 12px;">📍 Today</button>
+      </div>
+
+      <!-- Calendar Monthly Grid -->
+      <div class="calendar-table-container">
+        <div class="calendar-days-header">
+          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+        </div>
+        <div id="calendar-grid-cells" class="calendar-grid-cells"></div>
+      </div>
+
+      <!-- Selected Date Events & Actions -->
+      <div style="margin-top:16px; padding:14px; background:rgba(30, 41, 59, 0.5); border-radius:var(--radius-sm); border:1px solid var(--border-glass);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h4 id="cal-selected-date-heading" style="font-size:0.95rem; font-weight:700; color:var(--accent-gold);">📅 Selected: Today's Milestones</h4>
+          <button id="stamp-agenda-to-board-btn" class="hud-btn primary" style="font-size:0.76rem; padding:4px 10px;" title="Project this agenda onto the 3D Smart Board in the room">
+            📋 Stamp to 3D Smart Board
+          </button>
+        </div>
+        
+        <div id="cal-events-list" style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px;"></div>
+
+        <!-- Add Custom Milestone / Task Input -->
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="cal-new-task-input" placeholder="Add custom goal/event (e.g. Google AI Hackathon Prep)..." style="flex:1; background:rgba(0,0,0,0.4); border:1px solid var(--border-glass); border-radius:6px; padding:6px 10px; color:#fff; font-size:0.82rem;">
+          <button id="cal-add-task-btn" class="hud-btn" style="padding:6px 12px; font-size:0.8rem;">➕ Add Event</button>
+        </div>
       </div>
     </div>
   </div>

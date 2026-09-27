@@ -8,190 +8,192 @@ export default class ServerRig {
     this.group.position.copy(this.position);
 
     this.fans = [];
-    this.hologramCore = null;
     this.time = 0;
 
+    this.buildPCStand();
     this.buildChassis();
     this.buildInternalHardware();
-    this.buildHologramCore();
 
     this.scene.add(this.group);
   }
 
+  buildPCStand() {
+    // Solid Oak/Walnut floor riser stand to keep the PC off the floor (realistic setup!)
+    const standGeo = new THREE.BoxGeometry(0.52, 0.05, 0.74);
+    const standMat = new THREE.MeshStandardMaterial({
+      color: 0xc49a6c,
+      roughness: 0.4,
+      metalness: 0.1
+    });
+    const stand = new THREE.Mesh(standGeo, standMat);
+    stand.position.y = 0.025;
+    stand.castShadow = true;
+    stand.receiveShadow = true;
+    this.group.add(stand);
+
+    // 4 small rubber feet on the stand
+    const feetMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.8 });
+    [
+      [-0.22, -0.32], [0.22, -0.32],
+      [-0.22, 0.32], [0.22, 0.32]
+    ].forEach(([fx, fz]) => {
+      const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.02, 12), feetMat);
+      foot.position.set(fx, 0.01, fz);
+      this.group.add(foot);
+    });
+  }
+
   buildChassis() {
-    // Chassis Frame (Dark Anodized Aluminum)
-    const frameGeo = new THREE.BoxGeometry(0.48, 0.9, 0.72);
+    // Modern Matte Charcoal Tower (Fractal North / NZXT style)
+    const frameGeo = new THREE.BoxGeometry(0.44, 0.82, 0.66);
     const frameMat = new THREE.MeshStandardMaterial({
-      color: 0x09090b,
-      metalness: 0.9,
-      roughness: 0.2
+      color: 0x1f2937,
+      metalness: 0.4,
+      roughness: 0.35
     });
     const chassis = new THREE.Mesh(frameGeo, frameMat);
-    chassis.position.y = 0.45;
+    chassis.position.y = 0.46;
     chassis.castShadow = true;
     chassis.receiveShadow = true;
     this.group.add(chassis);
 
-    // Tempered Smoked Glass Side Panel
-    const glassGeo = new THREE.PlaneGeometry(0.7, 0.86);
+    // Front Panel with vertical wood accents (Fractal North signature realistic look)
+    const frontWoodMat = new THREE.MeshStandardMaterial({
+      color: 0xb48250,
+      roughness: 0.5,
+      metalness: 0.05
+    });
+    for (let s = -4; s <= 4; s++) {
+      const slat = new THREE.Mesh(
+        new THREE.BoxGeometry(0.022, 0.76, 0.015),
+        frontWoodMat
+      );
+      slat.position.set(s * 0.042, 0.46, 0.338);
+      this.group.add(slat);
+    }
+
+    // Power Button on top front
+    const pwrBtn = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.012, 0.012, 0.01, 16),
+      new THREE.MeshStandardMaterial({ color: 0xe5e7eb, metalness: 0.9 })
+    );
+    pwrBtn.position.set(0.14, 0.875, 0.28);
+    this.group.add(pwrBtn);
+
+    // Power LED indicator
+    const pwrLed = new THREE.Mesh(
+      new THREE.SphereGeometry(0.004, 8, 8),
+      new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+    );
+    pwrLed.position.set(0.17, 0.875, 0.28);
+    this.group.add(pwrLed);
+
+    // Tempered Smoked Glass Side Panel (Facing the room)
+    const glassGeo = new THREE.PlaneGeometry(0.62, 0.78);
     const glassMat = new THREE.MeshPhysicalMaterial({
-      color: 0x030712,
+      color: 0x111827,
       metalness: 0.1,
       roughness: 0.05,
-      transmission: 0.75,
+      transmission: 0.8,
       transparent: true,
-      opacity: 0.7
+      opacity: 0.65
     });
     const glassPanel = new THREE.Mesh(glassGeo, glassMat);
     glassPanel.rotation.y = Math.PI / 2;
-    glassPanel.position.set(0.245, 0.45, 0);
+    glassPanel.position.set(0.222, 0.46, 0);
     this.group.add(glassPanel);
-
-    // Neon Edge Trim Strip
-    const trimGeo = new THREE.BoxGeometry(0.02, 0.88, 0.02);
-    const trimMat = new THREE.MeshBasicMaterial({ color: 0x00f5ff });
-    const trim1 = new THREE.Mesh(trimGeo, trimMat);
-    trim1.position.set(0.245, 0.45, 0.35);
-    this.group.add(trim1);
-
-    const trim2 = new THREE.Mesh(trimGeo, trimMat);
-    trim2.position.set(0.245, 0.45, -0.35);
-    this.group.add(trim2);
   }
 
   buildInternalHardware() {
-    // Motherboard
-    const moboGeo = new THREE.BoxGeometry(0.02, 0.7, 0.55);
-    const moboMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.5 });
+    // Motherboard Tray (Matte Black PCB)
+    const moboGeo = new THREE.BoxGeometry(0.02, 0.62, 0.5);
+    const moboMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.6 });
     const mobo = new THREE.Mesh(moboGeo, moboMat);
-    mobo.position.set(-0.15, 0.48, 0);
+    mobo.position.set(-0.14, 0.48, -0.02);
     this.group.add(mobo);
 
-    // 4 High-End AI Tensor GPUs
-    const gpuGeo = new THREE.BoxGeometry(0.28, 0.06, 0.38);
-    const gpuMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.2 });
-    const gpuRgbMat = new THREE.MeshBasicMaterial({ color: 0x00f5ff });
+    // RTX 4090 GPU (Dual-slot card with illuminated GeForce logo)
+    const gpuGroup = new THREE.Group();
+    gpuGroup.position.set(0.02, 0.4, 0);
 
-    for (let i = 0; i < 3; i++) {
-      const gpu = new THREE.Mesh(gpuGeo, gpuMat);
-      gpu.position.set(0.02, 0.32 + i * 0.14, -0.05);
-      this.group.add(gpu);
+    const gpuMain = new THREE.Mesh(
+      new THREE.BoxGeometry(0.24, 0.08, 0.42),
+      new THREE.MeshStandardMaterial({ color: 0x27272a, metalness: 0.7, roughness: 0.3 })
+    );
+    gpuGroup.add(gpuMain);
 
-      // Glowing RGB Logo Stripe on GPU
-      const stripeGeo = new THREE.BoxGeometry(0.01, 0.02, 0.32);
-      const stripe = new THREE.Mesh(stripeGeo, gpuRgbMat);
-      stripe.position.set(0.165, 0.32 + i * 0.14, -0.05);
-      this.group.add(stripe);
+    // GPU Backplate & Illuminated Logo
+    const gpuLogo = new THREE.Mesh(
+      new THREE.BoxGeometry(0.01, 0.025, 0.22),
+      new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x38bdf8, emissiveIntensity: 0.6 })
+    );
+    gpuLogo.position.set(0.125, 0.01, 0);
+    gpuGroup.add(gpuLogo);
+
+    this.group.add(gpuGroup);
+
+    // CPU AIO Liquid Cooler Pump Block with soft illuminated ring
+    const cpuPump = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.045, 0.045, 0.035, 20),
+      new THREE.MeshStandardMaterial({ color: 0x18181b, metalness: 0.8, roughness: 0.2 })
+    );
+    cpuPump.rotation.z = Math.PI / 2;
+    cpuPump.position.set(-0.1, 0.58, -0.05);
+    this.group.add(cpuPump);
+
+    const aioRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.03, 0.04, 20),
+      new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide })
+    );
+    aioRing.rotation.y = Math.PI / 2;
+    aioRing.position.set(-0.08, 0.58, -0.05);
+    this.group.add(aioRing);
+
+    // 2 Braided Liquid Cooling Tubes curving gracefully to top radiator
+    const tubeMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.7 });
+    for (let t = 0; t < 2; t++) {
+      const curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.08, 0.58 + t * 0.02, -0.05),
+        new THREE.Vector3(-0.02, 0.68 + t * 0.02, -0.08),
+        new THREE.Vector3(0.05, 0.78, -0.12 + t * 0.04)
+      ]);
+      const tubeGeo = new THREE.TubeGeometry(curve, 16, 0.01, 8, false);
+      const tube = new THREE.Mesh(tubeGeo, tubeMat);
+      this.group.add(tube);
     }
 
-    // 3 Glowing Intake Fans on Front
-    const fanGeo = new THREE.RingGeometry(0.06, 0.09, 16);
+    // Top Radiator
+    const rad = new THREE.Mesh(
+      new THREE.BoxGeometry(0.28, 0.035, 0.44),
+      new THREE.MeshStandardMaterial({ color: 0x09090b, metalness: 0.8 })
+    );
+    rad.position.set(0, 0.81, 0);
+    this.group.add(rad);
+
+    // 2 Front Case Fans (Soft clean white/warm illumination)
+    const fanGeo = new THREE.RingGeometry(0.05, 0.08, 16);
     const fanMat = new THREE.MeshBasicMaterial({
-      color: 0xff007f,
+      color: 0xe0f2fe,
       side: THREE.DoubleSide
     });
 
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 2; i++) {
       const fan = new THREE.Mesh(fanGeo, fanMat);
-      fan.position.set(0, 0.25 + i * 0.24, 0.365);
+      fan.position.set(0, 0.32 + i * 0.26, 0.32);
       this.group.add(fan);
       this.fans.push(fan);
     }
 
-    // Glowing Liquid Cooling Reservoir & Tube
-    const resGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.3, 16);
-    const resMat = new THREE.MeshStandardMaterial({
-      color: 0x00f5ff,
-      emissive: 0x00f5ff,
-      emissiveIntensity: 0.8,
-      transparent: true,
-      opacity: 0.85
-    });
-    const reservoir = new THREE.Mesh(resGeo, resMat);
-    reservoir.position.set(0.1, 0.5, 0.18);
-    this.group.add(reservoir);
-
-    // Light casting from inside rig
-    const internalLight = new THREE.PointLight(0x00f5ff, 1.5, 2.5);
-    internalLight.position.set(0.05, 0.45, 0);
-    this.group.add(internalLight);
-  }
-
-  buildHologramCore() {
-    // Floating Hologram Platform Base on top of Server
-    const ringBaseGeo = new THREE.CylinderGeometry(0.14, 0.16, 0.03, 24);
-    const ringBaseMat = new THREE.MeshStandardMaterial({ color: 0x18181b, metalness: 0.8, roughness: 0.2 });
-    const ringBase = new THREE.Mesh(ringBaseGeo, ringBaseMat);
-    ringBase.position.set(0, 0.915, 0);
-    this.group.add(ringBase);
-
-    // Glowing Emitter Ring
-    const emitterGeo = new THREE.RingGeometry(0.08, 0.13, 24);
-    const emitterMat = new THREE.MeshBasicMaterial({ color: 0x00f5ff, side: THREE.DoubleSide });
-    const emitter = new THREE.Mesh(emitterGeo, emitterMat);
-    emitter.rotation.x = -Math.PI / 2;
-    emitter.position.set(0, 0.932, 0);
-    this.group.add(emitter);
-
-    // Floating Hologram Neural Core (Icosahedron Wireframe + Nodes)
-    this.hologramGroup = new THREE.Group();
-    this.hologramGroup.position.set(0, 1.15, 0);
-
-    const coreGeo = new THREE.IcosahedronGeometry(0.12, 1);
-    const coreMat = new THREE.MeshBasicMaterial({
-      color: 0x00f5ff,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.85
-    });
-    this.coreMesh = new THREE.Mesh(coreGeo, coreMat);
-    this.hologramGroup.add(this.coreMesh);
-
-    // Inner pulsing plasma sphere
-    const innerGeo = new THREE.SphereGeometry(0.06, 16, 16);
-    const innerMat = new THREE.MeshBasicMaterial({
-      color: 0xff007f,
-      transparent: true,
-      opacity: 0.75
-    });
-    this.innerMesh = new THREE.Mesh(innerGeo, innerMat);
-    this.hologramGroup.add(this.innerMesh);
-
-    // Outer orbital rings
-    const orbitGeo = new THREE.TorusGeometry(0.16, 0.005, 8, 32);
-    const orbitMat = new THREE.MeshBasicMaterial({ color: 0xa855f7 });
-    this.orbitRing1 = new THREE.Mesh(orbitGeo, orbitMat);
-    this.hologramGroup.add(this.orbitRing1);
-
-    this.orbitRing2 = new THREE.Mesh(orbitGeo, orbitMat);
-    this.orbitRing2.rotation.x = Math.PI / 2;
-    this.hologramGroup.add(this.orbitRing2);
-
-    this.group.add(this.hologramGroup);
+    // Soft warm interior accent light
+    const pcInteriorLight = new THREE.PointLight(0xbae6fd, 0.8, 1.8);
+    pcInteriorLight.position.set(0.05, 0.52, 0);
+    this.group.add(pcInteriorLight);
   }
 
   update(delta) {
     this.time += delta;
-
-    // Rotate fans
     this.fans.forEach(fan => {
-      fan.rotation.z += delta * 6;
+      fan.rotation.z += delta * 4;
     });
-
-    // Animate Hologram Core
-    if (this.hologramGroup) {
-      this.hologramGroup.position.y = 1.15 + Math.sin(this.time * 2) * 0.03;
-      this.coreMesh.rotation.y += delta * 0.8;
-      this.coreMesh.rotation.x += delta * 0.5;
-
-      this.orbitRing1.rotation.y -= delta * 1.2;
-      this.orbitRing1.rotation.z += delta * 0.6;
-
-      this.orbitRing2.rotation.x += delta * 1.0;
-      this.orbitRing2.rotation.y += delta * 0.7;
-
-      const scale = 1 + Math.sin(this.time * 4) * 0.1;
-      this.innerMesh.scale.set(scale, scale, scale);
-    }
   }
 }
