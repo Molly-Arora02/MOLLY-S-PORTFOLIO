@@ -103,6 +103,15 @@ export default class UIController {
       this.showFactToast(e.detail);
     });
 
+    // Listen for Corner Lamp mode toggle
+    window.addEventListener('showlamptoast', (e) => {
+      this.showFactToast({
+        color: 'Lamp',
+        title: e.detail.title,
+        fact: e.detail.desc
+      });
+    });
+
     // Listen for Trophy click
     window.addEventListener('showtrophymodal', () => {
       this.openModal('trophy-modal');

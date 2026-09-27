@@ -358,41 +358,113 @@ export default class Room {
     valance.position.set(0, 1.22, 0.12);
     windowGroup.add(valance);
 
-    // 2. Magical Fairy Lights String (Glows ONLY in Night / Evening)
+    // 2. Star Waterfall Curtain Lights (Ref: Hanging Starlight Curtain with Violet & Amber Room Reflection)
     this.fairyLightsGroup = new THREE.Group();
     
-    this.fairyLightBulbMat = new THREE.MeshStandardMaterial({
+    // Glowing Star Material (Illuminates in Night & Evening)
+    this.starLightsMat = new THREE.MeshStandardMaterial({
       color: 0xffffff,
-      emissive: 0xffb703,
-      emissiveIntensity: 0.0, // Default 0.0 for daytime, activated in night mode
-      roughness: 0.15,
+      emissive: 0xfef08a,
+      emissiveIntensity: 0.0, // Activated in night mode
+      roughness: 0.2,
       metalness: 0.1,
       transparent: true,
       opacity: 0.95
     });
 
-    // Straight wire cable along rod
+    // Glowing Micro-LED Drop Beads
+    this.fairyLightBulbMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      emissive: 0xd8b4fe, // Soft lavender-starlight glow
+      emissiveIntensity: 0.0,
+      roughness: 0.1,
+      metalness: 0.2,
+      transparent: true,
+      opacity: 0.95
+    });
+
+    // Straight Top Header Cable along Rod
     const wireMat = new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.8 });
     const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 2.6, 12), wireMat);
     wire.rotation.z = Math.PI / 2;
     wire.position.set(0, 1.26, 0.155);
     this.fairyLightsGroup.add(wire);
 
-    // Straight line of micro-LED fairy lights evenly spaced
-    const bulbCount = 20;
-    const bulbGeo = new THREE.SphereGeometry(0.016, 12, 12);
+    // 5-Pointed Star Geometry Helper
+    const createStarShape = (outerR, innerR) => {
+      const shape = new THREE.Shape();
+      const pts = 5;
+      for (let i = 0; i < pts * 2; i++) {
+        const r = i % 2 === 0 ? outerR : innerR;
+        const a = (i * Math.PI) / pts - Math.PI / 2;
+        const x = Math.cos(a) * r;
+        const y = Math.sin(a) * r;
+        if (i === 0) shape.moveTo(x, y);
+        else shape.lineTo(x, y);
+      }
+      shape.closePath();
+      return new THREE.ExtrudeGeometry(shape, { depth: 0.012, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.003, bevelSegments: 2 });
+    };
 
-    for (let i = 0; i < bulbCount; i++) {
-      const bx = -1.22 + i * (2.44 / (bulbCount - 1));
-      const bulb = new THREE.Mesh(bulbGeo, this.fairyLightBulbMat);
-      bulb.position.set(bx, 1.26, 0.165);
-      this.fairyLightsGroup.add(bulb);
+    const bigStarGeo = createStarShape(0.065, 0.026);
+    const smallStarGeo = createStarShape(0.042, 0.018);
+    const microBulbGeo = new THREE.SphereGeometry(0.012, 12, 12);
+
+    // 7 Vertical Drop Strands across the window curtains
+    const dropXCoords = [-1.05, -0.7, -0.35, 0, 0.35, 0.7, 1.05];
+    const dropLengths = [1.8, 1.4, 2.1, 1.6, 2.2, 1.5, 1.9];
+
+    dropXCoords.forEach((dx, sIdx) => {
+      const strandLen = dropLengths[sIdx];
+      
+      // Thin vertical hanging cord
+      const cord = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.0015, 0.0015, strandLen, 8),
+        wireMat
+      );
+      cord.position.set(dx, 1.26 - strandLen / 2, 0.155);
+      this.fairyLightsGroup.add(cord);
+
+      // Micro-LED starlight beads along the strand
+      const beadCount = Math.floor(strandLen / 0.32);
+      for (let b = 1; b <= beadCount; b++) {
+        const bead = new THREE.Mesh(microBulbGeo, this.fairyLightBulbMat);
+        bead.position.set(dx, 1.26 - b * 0.32, 0.158);
+        this.fairyLightsGroup.add(bead);
+      }
+
+      // Hanging Large 3D Glowing Star at bottom
+      const star = new THREE.Mesh(sIdx % 2 === 0 ? bigStarGeo : smallStarGeo, this.starLightsMat);
+      star.position.set(dx, 1.26 - strandLen, 0.158);
+      star.rotation.z = (sIdx % 3) * 0.15;
+      this.fairyLightsGroup.add(star);
+
+      // Mid-level accent star on longer strands
+      if (strandLen > 1.7) {
+        const midStar = new THREE.Mesh(smallStarGeo, this.starLightsMat);
+        midStar.position.set(dx, 1.26 - strandLen * 0.45, 0.158);
+        midStar.rotation.z = -0.1;
+        this.fairyLightsGroup.add(midStar);
+      }
+    });
+
+    // Top straight micro-LED header row
+    for (let i = 0; i < 18; i++) {
+      const bx = -1.2 + i * (2.4 / 17);
+      const topBulb = new THREE.Mesh(microBulbGeo, this.fairyLightBulbMat);
+      topBulb.position.set(bx, 1.26, 0.16);
+      this.fairyLightsGroup.add(topBulb);
     }
 
-    // Warm ambient point light for fairy lights
-    this.fairyPointLight = new THREE.PointLight(0xffb703, 0.0, 3.2, 2);
-    this.fairyPointLight.position.set(0, 1.26, 0.22);
+    // Warm golden ambient fairy point light
+    this.fairyPointLight = new THREE.PointLight(0xfef08a, 0.0, 3.2, 2);
+    this.fairyPointLight.position.set(0, 0.4, 0.25);
     this.fairyLightsGroup.add(this.fairyPointLight);
+
+    // Beautiful Dim Violet/Purple Ambient Room Reflection Light (matches reference photo)
+    this.fairyRoomReflectionLight = new THREE.PointLight(0xa855f7, 0.0, 4.2, 2);
+    this.fairyRoomReflectionLight.position.set(1.4, 1.2, -2.4);
+    this.group.add(this.fairyRoomReflectionLight);
 
     windowGroup.add(this.fairyLightsGroup);
 
@@ -1330,6 +1402,142 @@ export default class Room {
     }
 
     this.group.add(floorPlantGroup);
+
+    // 4. Interactive 3-Mode Manual Corner Floor Lamp
+    this.buildCornerFloorLamp();
+  }
+
+  buildCornerFloorLamp() {
+    this.cornerLampGroup = new THREE.Group();
+    this.cornerLampGroup.position.set(-2.85, 0, 1.35);
+
+    this.floorLampMode = 1; // 1 = Warm Amber, 2 = Twilight Violet, 3 = Crisp White
+
+    // Heavy Circular Brushed Dark Metal Base
+    const baseMat = new THREE.MeshStandardMaterial({ color: 0x18181b, metalness: 0.85, roughness: 0.25 });
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.04, 32), baseMat);
+    base.position.y = 0.02;
+    base.castShadow = true;
+    this.cornerLampGroup.add(base);
+
+    // Vertical Slim Brass & Matte Black Stand
+    const poleMat = new THREE.MeshStandardMaterial({ color: 0x27272a, metalness: 0.7, roughness: 0.3 });
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 1.5, 16), poleMat);
+    pole.position.y = 0.77;
+    pole.castShadow = true;
+    this.cornerLampGroup.add(pole);
+
+    // Brass Collar / Accent Ring
+    const brassMat = new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 0.9, roughness: 0.2 });
+    const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.06, 16), brassMat);
+    collar.position.y = 1.48;
+    this.cornerLampGroup.add(collar);
+
+    // Textured Linen Drum Shade
+    this.cornerLampShadeMat = new THREE.MeshStandardMaterial({
+      color: 0xfdfaf6,
+      emissive: 0xffa040,
+      emissiveIntensity: 0.25,
+      roughness: 0.7,
+      metalness: 0.05,
+      side: THREE.DoubleSide
+    });
+    const shade = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.24, 0.28, 0.42, 32, 1, true),
+      this.cornerLampShadeMat
+    );
+    shade.position.y = 1.62;
+    shade.castShadow = true;
+    this.cornerLampGroup.add(shade);
+
+    // Internal Glowing Bulb
+    this.cornerLampBulbMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      emissive: 0xffa040,
+      emissiveIntensity: 2.8,
+      roughness: 0.1,
+      metalness: 0.1
+    });
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 16), this.cornerLampBulbMat);
+    bulb.position.y = 1.62;
+    this.cornerLampGroup.add(bulb);
+
+    // Dynamic Point Light
+    this.cornerFloorLampLight = new THREE.PointLight(0xffa040, 2.6, 4.8, 2);
+    this.cornerFloorLampLight.position.set(0, 1.62, 0);
+    this.cornerLampGroup.add(this.cornerFloorLampLight);
+
+    // Soft Floor Downward Ambient Glow
+    this.cornerLampFloorGlow = new THREE.PointLight(0xffa040, 1.3, 2.5, 2);
+    this.cornerLampFloorGlow.position.set(0, 0.35, 0);
+    this.cornerLampGroup.add(this.cornerLampFloorGlow);
+
+    // Make interactive to click/tap in 3D
+    this.cornerLampGroup.traverse(child => {
+      if (child.isMesh) {
+        child.userData = { isFloorLamp: true };
+        this.interactiveObjects.push(child);
+      }
+    });
+
+    this.group.add(this.cornerLampGroup);
+  }
+
+  toggleFloorLamp() {
+    this.floorLampMode = (this.floorLampMode % 3) + 1;
+    this.audioManager?.playClick();
+
+    const modes = {
+      1: {
+        name: 'Warm Amber 🕯️',
+        sub: 'Mode 1/3: 2700K Candlelight Sunset Glow',
+        color: 0xffa040,
+        emissive: 0xffb703,
+        intensity: 2.8,
+        floorIntensity: 1.4
+      },
+      2: {
+        name: 'Twilight Violet 💜',
+        sub: 'Mode 2/3: Ambient Starlight Neon Glow',
+        color: 0xa855f7,
+        emissive: 0xc084fc,
+        intensity: 2.6,
+        floorIntensity: 1.3
+      },
+      3: {
+        name: 'Crisp Studio 💡',
+        sub: 'Mode 3/3: 4500K Clean White Reading Light',
+        color: 0xf8fafc,
+        emissive: 0xffffff,
+        intensity: 3.0,
+        floorIntensity: 1.5
+      }
+    };
+
+    const current = modes[this.floorLampMode];
+    if (current) {
+      if (this.cornerFloorLampLight) {
+        this.cornerFloorLampLight.color.setHex(current.color);
+        gsap.to(this.cornerFloorLampLight, { intensity: current.intensity, duration: 0.35 });
+      }
+      if (this.cornerLampFloorGlow) {
+        this.cornerLampFloorGlow.color.setHex(current.color);
+        gsap.to(this.cornerLampFloorGlow, { intensity: current.floorIntensity, duration: 0.35 });
+      }
+      if (this.cornerLampBulbMat) {
+        this.cornerLampBulbMat.emissive.setHex(current.emissive);
+      }
+      if (this.cornerLampShadeMat) {
+        this.cornerLampShadeMat.emissive.setHex(current.emissive);
+      }
+
+      window.dispatchEvent(new CustomEvent('showlamptoast', {
+        detail: {
+          title: `💡 Corner Lamp: ${current.name}`,
+          desc: current.sub
+        }
+      }));
+    }
   }
 
   update(delta, isRubikInspecting = false) {

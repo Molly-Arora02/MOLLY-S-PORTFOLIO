@@ -193,8 +193,13 @@ export default class Experience {
     const intersects = this.raycaster.intersectObjects(this.room.interactiveObjects, true);
     if (intersects.length > 0) {
       let hit = intersects[0].object;
-      while (hit && !hit.userData?.targetView && !hit.userData?.isChair && !hit.userData?.isWhiteboard && !hit.userData?.isArcadeScreen && !hit.userData?.isArcadeCabinet && hit.parent && hit !== this.scene) {
+      while (hit && !hit.userData?.targetView && !hit.userData?.isChair && !hit.userData?.isWhiteboard && !hit.userData?.isArcadeScreen && !hit.userData?.isArcadeCabinet && !hit.userData?.isFloorLamp && hit.parent && hit !== this.scene) {
         hit = hit.parent;
+      }
+
+      if (hit?.userData?.isFloorLamp) {
+        this.room.toggleFloorLamp();
+        return;
       }
 
       if (hit?.userData?.isChair) {
