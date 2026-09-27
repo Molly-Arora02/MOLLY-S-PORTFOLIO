@@ -299,28 +299,103 @@ export default class Room {
     hBar.position.set(0, 0, 0.03);
     windowGroup.add(hBar);
 
-    // Curtain Rod & Sheer Curtains
+    // Curtain Rod & Warm Brass Finials
     const rodMat = new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.9, roughness: 0.2 });
     const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 2.7, 16), rodMat);
     rod.rotation.z = Math.PI / 2;
     rod.position.set(0, 1.28, 0.14);
     windowGroup.add(rod);
 
-    // Soft Cream Linen Sheer Curtains on sides
-    const curtainMat = new THREE.MeshStandardMaterial({
-      color: 0xfdfbf7,
-      roughness: 0.9,
-      transparent: true,
-      opacity: 0.85
+    // Brass Finials on Rod Ends
+    const finialMat = new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 0.85, roughness: 0.25 });
+    [-1.36, 1.36].forEach(fx => {
+      const finial = new THREE.Mesh(new THREE.SphereGeometry(0.032, 16, 16), finialMat);
+      finial.position.set(fx, 1.28, 0.14);
+      windowGroup.add(finial);
     });
 
-    const leftCurtain = new THREE.Mesh(new THREE.BoxGeometry(0.35, 2.4, 0.06), curtainMat);
-    leftCurtain.position.set(-1.15, 0, 0.12);
-    windowGroup.add(leftCurtain);
+    // 1. Translucent Airy Sheer Curtains ("Transy" Linen Curtains)
+    const sheerCurtainMat = new THREE.MeshStandardMaterial({
+      color: 0xfcfbfa,
+      roughness: 0.75,
+      metalness: 0.02,
+      transparent: true,
+      opacity: 0.46,
+      side: THREE.DoubleSide
+    });
 
-    const rightCurtain = new THREE.Mesh(new THREE.BoxGeometry(0.35, 2.4, 0.06), curtainMat);
-    rightCurtain.position.set(1.15, 0, 0.12);
-    windowGroup.add(rightCurtain);
+    // Pleated wavy curtain drapes (Left & Right)
+    const createCurtainPanel = (isLeft) => {
+      const panelGroup = new THREE.Group();
+      const baseSign = isLeft ? -1 : 1;
+      
+      // Main hanging sheer panel
+      const panel = new THREE.Mesh(new THREE.BoxGeometry(0.42, 2.45, 0.04), sheerCurtainMat);
+      panel.position.set(baseSign * 1.08, -0.02, 0.11);
+      panelGroup.add(panel);
+
+      // Delicate vertical pleat ripples
+      for (let p = 0; p < 4; p++) {
+        const pleat = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 2.45, 12), sheerCurtainMat);
+        pleat.position.set(baseSign * (0.92 + p * 0.1), -0.02, 0.125 + Math.sin(p * 1.6) * 0.01);
+        panelGroup.add(pleat);
+      }
+
+      // Elegant Brass Tie-Back Ring
+      const tieRing = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.008, 8, 24), finialMat);
+      tieRing.rotation.y = Math.PI / 2;
+      tieRing.position.set(baseSign * 1.16, -0.2, 0.12);
+      panelGroup.add(tieRing);
+
+      return panelGroup;
+    };
+
+    windowGroup.add(createCurtainPanel(true));
+    windowGroup.add(createCurtainPanel(false));
+
+    // Top Header Valance Sheer Drape
+    const valance = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.18, 0.03), sheerCurtainMat);
+    valance.position.set(0, 1.22, 0.12);
+    windowGroup.add(valance);
+
+    // 2. Magical Fairy Lights String (Glows ONLY in Night / Evening)
+    this.fairyLightsGroup = new THREE.Group();
+    
+    this.fairyLightBulbMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      emissive: 0xffb703,
+      emissiveIntensity: 0.0, // Default 0.0 for daytime, activated in night mode
+      roughness: 0.15,
+      metalness: 0.1,
+      transparent: true,
+      opacity: 0.95
+    });
+
+    // Wire cable along rod
+    const wireMat = new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.8 });
+    const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 2.6, 12), wireMat);
+    wire.rotation.z = Math.PI / 2;
+    wire.position.set(0, 1.26, 0.15);
+    this.fairyLightsGroup.add(wire);
+
+    // Hanging micro-bulbs with gentle catenary drape
+    const bulbCount = 16;
+    const bulbGeo = new THREE.SphereGeometry(0.018, 12, 12);
+
+    for (let i = 0; i < bulbCount; i++) {
+      const bx = -1.2 + i * (2.4 / (bulbCount - 1));
+      const sag = Math.sin((i / (bulbCount - 1)) * Math.PI) * 0.08;
+      const bulb = new THREE.Mesh(bulbGeo, this.fairyLightBulbMat);
+      bulb.position.set(bx, 1.25 - sag, 0.16);
+      this.fairyLightsGroup.add(bulb);
+    }
+
+    // Warm ambient point light for fairy lights
+    this.fairyPointLight = new THREE.PointLight(0xffb703, 0.0, 3.2, 2);
+    this.fairyPointLight.position.set(0, 1.25, 0.22);
+    this.fairyLightsGroup.add(this.fairyPointLight);
+
+    windowGroup.add(this.fairyLightsGroup);
 
     this.group.add(windowGroup);
   }
