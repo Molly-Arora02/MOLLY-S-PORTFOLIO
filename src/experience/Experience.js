@@ -53,16 +53,21 @@ export default class Experience {
     this.renderer.setPixelRatio(this.sizes.pixelRatio);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.15;
+    this.renderer.toneMappingExposure = 1.08;
   }
 
   setupEvents() {
     window.addEventListener('resize', () => this.resize());
 
+    const updatePointer = (clientX, clientY) => {
+      this.mouse.x = (clientX / this.sizes.width) * 2 - 1;
+      this.mouse.y = -(clientY / this.sizes.height) * 2 + 1;
+    };
+
     window.addEventListener('mousemove', (e) => {
-      this.mouse.x = (e.clientX / this.sizes.width) * 2 - 1;
-      this.mouse.y = -(e.clientY / this.sizes.height) * 2 + 1;
+      updatePointer(e.clientX, e.clientY);
       this.checkHover();
 
       // If zoomed into whiteboard and mouse is pressed, draw directly on 3D board
@@ -73,6 +78,7 @@ export default class Experience {
 
     this.canvas.addEventListener('mousedown', (e) => {
       this.isMouseDown = true;
+      updatePointer(e.clientX, e.clientY);
       if (this.camera.currentView === 'whiteboard' && this.room?.whiteboard) {
         this.raycastWhiteboardDraw(true);
       }
@@ -85,12 +91,49 @@ export default class Experience {
       }
     });
 
-    this.canvas.addEventListener('click', (e) => this.handleClick(e));
+    // Touch event support for drawing and interactions
+    this.canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length > 0) {
+        updatePointer(e.touches[0].clientX, e.touches[0].clientY);
+        if (this.camera.currentView === 'whiteboard' && this.room?.whiteboard) {
+          this.raycastWhiteboardDraw(true);
+        } else {
+          this.handleClick(e);
+        }
+      }
+    }, { passive: true });
+
+    this.canvas.addEventListener('touchmove', (e) => {
+      if (e.touches.length > 0 && this.camera.currentView === 'whiteboard' && this.room?.whiteboard) {
+        updatePointer(e.touches[0].clientX, e.touches[0].clientY);
+        this.raycastWhiteboardDraw(false);
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+      if (this.room?.whiteboard) {
+        this.room.whiteboard.stopDraw();
+      }
+    });
+
+    this.canvas.addEventListener('click', (e) => {
+      updatePointer(e.clientX, e.clientY);
+      this.handleClick(e);
+    });
   }
 
   checkHover() {
     if (!this.room) return;
     this.raycaster.setFromCamera(this.mouse, this.camera.instance);
+
+    // If currently focused on whiteboard, show precision drawing crosshair
+    if (this.camera.currentView === 'whiteboard' && this.room.whiteboard) {
+      const wbHits = this.raycaster.intersectObject(this.room.whiteboard.mesh);
+      if (wbHits.length > 0) {
+        this.canvas.style.cursor = 'crosshair';
+        return;
+      }
+    }
     
     // Check intersection with interactive objects or rubik cubies
     const candidates = [
@@ -102,7 +145,7 @@ export default class Experience {
 
     if (intersects.length > 0) {
       let hit = intersects[0].object;
-      while (hit && !hit.userData?.targetView && !hit.userData?.isRubikCubie && !hit.userData?.isChair && !hit.userData?.isWhiteboard && !hit.userData?.isArcadeScreen && hit.parent && hit !== this.scene) {
+      while (hit && !hit.userData?.targetView && !hit.userData?.isRubikCubie && !hit.userData?.isChair && !hit.userData?.isWhiteboard && !hit.userData?.isArcadeScreen && !hit.userData?.isArcadeCabinet && hit.parent && hit !== this.scene) {
         hit = hit.parent;
       }
       this.canvas.style.cursor = 'pointer';
@@ -150,7 +193,7 @@ export default class Experience {
     const intersects = this.raycaster.intersectObjects(this.room.interactiveObjects, true);
     if (intersects.length > 0) {
       let hit = intersects[0].object;
-      while (hit && !hit.userData?.targetView && !hit.userData?.isChair && !hit.userData?.isWhiteboard && !hit.userData?.isArcadeScreen && hit.parent && hit !== this.scene) {
+      while (hit && !hit.userData?.targetView && !hit.userData?.isChair && !hit.userData?.isWhiteboard && !hit.userData?.isArcadeScreen && !hit.userData?.isArcadeCabinet && hit.parent && hit !== this.scene) {
         hit = hit.parent;
       }
 
@@ -172,7 +215,12 @@ export default class Experience {
         return;
       }
 
-      if (hit?.userData?.isArcadeScreen) {
+      if (hit?.userData?.isClock || hit?.userData?.isCalendar || hit?.userData?.targetView === 'calendar_modal') {
+        window.dispatchEvent(new CustomEvent('showcalendarmodal'));
+        return;
+      }
+
+      if (hit?.userData?.isArcadeScreen || hit?.userData?.isArcadeCabinet || hit?.userData?.targetView === 'arcade') {
         this.camera.setView('arcade');
         window.dispatchEvent(new CustomEvent('viewchange', { detail: { view: 'arcade' } }));
         return;
@@ -180,8 +228,12 @@ export default class Experience {
 
       if (hit?.userData?.targetView) {
         const view = hit.userData.targetView;
-        this.camera.setView(view);
-        window.dispatchEvent(new CustomEvent('viewchange', { detail: { view } }));
+        if (view === 'calendar_modal') {
+          window.dispatchEvent(new CustomEvent('showcalendarmodal'));
+        } else {
+          this.camera.setView(view);
+          window.dispatchEvent(new CustomEvent('viewchange', { detail: { view } }));
+        }
       }
     }
   }

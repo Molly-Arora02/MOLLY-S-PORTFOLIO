@@ -17,23 +17,30 @@ export default class RubiksCube {
     this.isRotating = false;
     this.rubikData = mollyData.rubikFacts;
 
+    this.cubieSize = 0.088;
+    this.spacing = 0.094;
+
     this.colors = {
-      F: 0x00f5ff, // Front - Electric Cyan (MUSE AI Live Product)
-      B: 0xf59e0b, // Back - Amber Gold (8th PAN India DevSummit)
-      U: 0x38bdf8, // Up - Sky Blue (Google Prompt Certified)
-      D: 0x00f08a, // Down - Laser Emerald (IIT Mandi 8.0 CGPA)
-      L: 0xff007f, // Left - Neon Magenta (Stanford Python)
+      F: 0xf59e0b, // Front - Warm Amber Gold (MUSE AI Live Product)
+      B: 0x38bdf8, // Back - Sky Blue (Google Prompt Certified)
+      U: 0xfef08a, // Up - Radiant Cream Gold (DevSummit 8th)
+      D: 0x10b981, // Down - Emerald Sage (IIT Mandi 8.0 CGPA)
+      L: 0xec4899, // Left - Rose Quartz (Stanford Python)
       R: 0x8b5cf6, // Right - Electric Purple (Coding Blocks / Full-Stack)
-      inside: 0x09090b // Deep Obsidian inner plastic
+      inside: 0x18181b // Matte Charcoal inner core plastic
     };
 
     this.initCube();
   }
 
   initCube() {
-    const cubieSize = 0.22;
-    const spacing = 0.235;
-    const geometry = new THREE.BoxGeometry(cubieSize, cubieSize, cubieSize);
+    // Clear any existing cubies
+    while (this.group.children.length > 0) {
+      this.group.remove(this.group.children[0]);
+    }
+    this.cubies = [];
+
+    const geometry = new THREE.BoxGeometry(this.cubieSize, this.cubieSize, this.cubieSize);
 
     // Create 3x3x3 = 27 cubies
     for (let x = -1; x <= 1; x++) {
@@ -73,13 +80,17 @@ export default class RubiksCube {
           ];
 
           const cubie = new THREE.Mesh(geometry, materials);
-          cubie.position.set(x * spacing, y * spacing, z * spacing);
+          const px = x * this.spacing;
+          const py = y * this.spacing;
+          const pz = z * this.spacing;
+          cubie.position.set(px, py, pz);
           cubie.castShadow = true;
           cubie.receiveShadow = true;
           cubie.userData = { 
-            gridPos: new THREE.Vector3(x, y, z),
+            gridCoord: { x, y, z },
             isRubikCubie: true,
-            origPos: new THREE.Vector3(x * spacing, y * spacing, z * spacing)
+            targetView: 'rubik',
+            initialPos: new THREE.Vector3(px, py, pz)
           };
 
           this.cubies.push(cubie);
@@ -87,16 +98,9 @@ export default class RubiksCube {
         }
       }
     }
-
-    // Add subtle pedestal for the Rubik's cube on the desk
-    const standGeo = new THREE.CylinderGeometry(0.24, 0.28, 0.04, 24);
-    const standMat = new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.4, metalness: 0.5 });
-    const stand = new THREE.Mesh(standGeo, standMat);
-    stand.position.set(0, -0.42, 0);
-    this.group.add(stand);
   }
 
-  rotateSlice(axis, layer, angle = Math.PI / 2, duration = 0.35) {
+  rotateSlice(axis, layer, angle = Math.PI / 2, duration = 0.28) {
     if (this.isRotating) return Promise.resolve();
     this.isRotating = true;
 
@@ -106,17 +110,17 @@ export default class RubiksCube {
     this.group.add(pivot);
 
     const activeCubies = [];
-    const threshold = 0.1;
+    const targetCoord = layer * this.spacing;
+    const threshold = this.spacing * 0.45;
 
+    // Accurately find the 9 cubies located on this slice
     this.cubies.forEach(cubie => {
-      const worldPos = new THREE.Vector3();
-      cubie.getWorldPosition(worldPos);
-      const localPos = this.group.worldToLocal(worldPos.clone());
-
+      // Get position relative to the Rubik's cube group
+      const pos = cubie.position;
       let match = false;
-      if (axis === 'x' && Math.abs(localPos.x - layer * 0.235) < threshold) match = true;
-      if (axis === 'y' && Math.abs(localPos.y - layer * 0.235) < threshold) match = true;
-      if (axis === 'z' && Math.abs(localPos.z - layer * 0.235) < threshold) match = true;
+      if (axis === 'x' && Math.abs(pos.x - targetCoord) < threshold) match = true;
+      if (axis === 'y' && Math.abs(pos.y - targetCoord) < threshold) match = true;
+      if (axis === 'z' && Math.abs(pos.z - targetCoord) < threshold) match = true;
 
       if (match) {
         activeCubies.push(cubie);
@@ -134,6 +138,10 @@ export default class RubiksCube {
           pivot.updateMatrixWorld();
           activeCubies.forEach(c => {
             this.group.attach(c);
+            // Snap position to exact grid increments to prevent precision drift
+            c.position.x = Math.round(c.position.x / this.spacing) * this.spacing;
+            c.position.y = Math.round(c.position.y / this.spacing) * this.spacing;
+            c.position.z = Math.round(c.position.z / this.spacing) * this.spacing;
           });
           this.group.remove(pivot);
           this.isRotating = false;
@@ -146,41 +154,45 @@ export default class RubiksCube {
   async scramble() {
     if (this.isRotating) return;
     const axes = ['x', 'y', 'z'];
-    const layers = [-1, 0, 1];
-    for (let i = 0; i < 6; i++) {
+    const layers = [-1, 1]; // Rotate outer faces for clean scramble
+    const moves = 8;
+    
+    for (let i = 0; i < moves; i++) {
       const axis = axes[Math.floor(Math.random() * axes.length)];
       const layer = layers[Math.floor(Math.random() * layers.length)];
       const dir = Math.random() > 0.5 ? 1 : -1;
-      await this.rotateSlice(axis, layer, (Math.PI / 2) * dir, 0.18);
+      await this.rotateSlice(axis, layer, (Math.PI / 2) * dir, 0.16);
     }
   }
 
   async resetSolved() {
     if (this.isRotating) return;
+    this.isRotating = true;
     this.audioManager?.playWhoosh();
-    // Animate all cubies back to initial positions
-    const spacing = 0.235;
-    let idx = 0;
-    for (let x = -1; x <= 1; x++) {
-      for (let y = -1; y <= 1; y++) {
-        for (let z = -1; z <= 1; z++) {
-          const cubie = this.cubies[idx++];
-          gsap.to(cubie.position, {
-            x: x * spacing,
-            y: y * spacing,
-            z: z * spacing,
-            duration: 0.4,
-            ease: "back.out(1.5)"
-          });
-          gsap.to(cubie.rotation, {
-            x: 0,
-            y: 0,
-            z: 0,
-            duration: 0.4
-          });
-        }
-      }
-    }
+
+    // Smoothly animate all 27 cubies back to their clean initial solved positions & zero rotation
+    const promises = this.cubies.map(cubie => {
+      return new Promise(res => {
+        gsap.to(cubie.position, {
+          x: cubie.userData.initialPos.x,
+          y: cubie.userData.initialPos.y,
+          z: cubie.userData.initialPos.z,
+          duration: 0.45,
+          ease: "back.out(1.4)"
+        });
+        gsap.to(cubie.rotation, {
+          x: 0,
+          y: 0,
+          z: 0,
+          duration: 0.45,
+          ease: "power2.out",
+          onComplete: () => res()
+        });
+      });
+    });
+
+    await Promise.all(promises);
+    this.isRotating = false;
   }
 
   handleStickerClick(intersection) {
@@ -212,8 +224,8 @@ export default class RubiksCube {
 
   update(delta, isInspecting = false) {
     if (isInspecting) {
-      this.group.rotation.y += delta * 0.3;
-      this.group.rotation.x = Math.sin(Date.now() * 0.001) * 0.15;
+      this.group.rotation.y += delta * 0.35;
+      this.group.rotation.x = Math.sin(Date.now() * 0.001) * 0.12;
     } else {
       this.group.rotation.y = 0.35;
       this.group.rotation.x = 0.15;
