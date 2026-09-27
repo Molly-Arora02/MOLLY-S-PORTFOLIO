@@ -1409,8 +1409,8 @@ export default class Room {
 
   buildCornerFloorLamp() {
     this.cornerLampGroup = new THREE.Group();
-    // Repositioned to right-side accent corner next to window and arcade machine
-    this.cornerLampGroup.position.set(2.85, 0, -0.6);
+    // Positioned directly beside the window and sheer curtains
+    this.cornerLampGroup.position.set(0.92, 0, -2.85);
 
     this.floorLampMode = 1; // 1 = Warm Amber, 2 = Twilight Violet, 3 = Crisp White
 
