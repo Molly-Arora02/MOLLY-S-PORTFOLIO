@@ -192,13 +192,13 @@ export default class Room {
   }
 
   buildAcousticWoodSlats() {
-    // Real-Life Trendy Scandinavian Vertical Oak Slat Wall Panel (behind the desk)
+    // Real-Life Trendy Scandinavian Vertical Oak Slat Wall Accent Panel (Lower desk accent)
     const slatGroup = new THREE.Group();
-    slatGroup.position.set(-0.1, 2.3, -3.38);
+    slatGroup.position.set(-0.6, 1.25, -3.38);
 
-    // Dark Charcoal Acoustic Felt Backing
+    // Dark Charcoal Acoustic Felt Backing (Lower section behind desk)
     const feltBack = new THREE.Mesh(
-      new THREE.BoxGeometry(2.6, 2.6, 0.02),
+      new THREE.BoxGeometry(1.6, 1.6, 0.015),
       new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.95 })
     );
     slatGroup.add(feltBack);
@@ -210,15 +210,15 @@ export default class Room {
       metalness: 0.05
     });
 
-    const slatCount = 28;
+    const slatCount = 18;
     const slatWidth = 0.045;
-    const slatSpacing = 0.09;
+    const slatSpacing = 0.088;
     const startX = -((slatCount - 1) * slatSpacing) / 2;
 
     for (let i = 0; i < slatCount; i++) {
-      const slatGeo = new THREE.BoxGeometry(slatWidth, 2.56, 0.022);
+      const slatGeo = new THREE.BoxGeometry(slatWidth, 1.58, 0.018);
       const slat = new THREE.Mesh(slatGeo, oakSlatMat);
-      slat.position.set(startX + i * slatSpacing, 0, 0.016);
+      slat.position.set(startX + i * slatSpacing, 0, 0.012);
       slat.castShadow = true;
       slat.receiveShadow = true;
       slatGroup.add(slat);
@@ -229,16 +229,19 @@ export default class Room {
 
   buildWindow() {
     const windowGroup = new THREE.Group();
-    windowGroup.position.set(2.0, 2.4, -3.38);
+    windowGroup.position.set(2.15, 2.4, -3.37);
 
     // Scenic Outdoor Sky & City View (Bright Daylight Backdrop)
     this.windowViewMat = new THREE.MeshBasicMaterial({
       map: this.windowTexture,
       side: THREE.DoubleSide,
-      toneMapped: false
+      toneMapped: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1
     });
-    const viewMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 2.3), this.windowViewMat);
-    viewMesh.position.set(0, 0, 0.01);
+    const viewMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 2.1), this.windowViewMat);
+    viewMesh.position.set(0, 0, 0.008);
     windowGroup.add(viewMesh);
 
     // Outer Window Frame (4 Perimeter Bars: Top, Bottom, Left, Right)
@@ -1206,7 +1209,7 @@ export default class Room {
     this.interactiveObjects.push(this.whiteboard.mesh);
 
     // 2. Interactive Vision Board with Polaroids & Warm LED Accent
-    this.visionBoard = new VisionBoard(this.experience, new THREE.Vector3(-0.15, 2.85, -3.36), {
+    this.visionBoard = new VisionBoard(this.experience, new THREE.Vector3(-0.05, 2.85, -3.34), {
       width: 1.65,
       height: 1.75
     });

@@ -356,9 +356,13 @@ export default class VisionBoard {
     this.boardMaterial = new THREE.MeshStandardMaterial({
       map: this.texture,
       roughness: 0.65,
-      metalness: 0.05
+      metalness: 0.05,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1
     });
     this.mesh = new THREE.Mesh(boardGeo, this.boardMaterial);
+    this.mesh.position.set(0, 0, 0.005);
     this.mesh.userData = { targetView: 'vision', isVisionBoard: true };
     this.mesh.receiveShadow = true;
     this.group.add(this.mesh);
