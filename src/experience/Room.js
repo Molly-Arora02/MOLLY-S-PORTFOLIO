@@ -371,28 +371,27 @@ export default class Room {
       opacity: 0.95
     });
 
-    // Wire cable along rod
+    // Straight wire cable along rod
     const wireMat = new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.8 });
     const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 2.6, 12), wireMat);
     wire.rotation.z = Math.PI / 2;
-    wire.position.set(0, 1.26, 0.15);
+    wire.position.set(0, 1.26, 0.155);
     this.fairyLightsGroup.add(wire);
 
-    // Hanging micro-bulbs with gentle catenary drape
-    const bulbCount = 16;
-    const bulbGeo = new THREE.SphereGeometry(0.018, 12, 12);
+    // Straight line of micro-LED fairy lights evenly spaced
+    const bulbCount = 20;
+    const bulbGeo = new THREE.SphereGeometry(0.016, 12, 12);
 
     for (let i = 0; i < bulbCount; i++) {
-      const bx = -1.2 + i * (2.4 / (bulbCount - 1));
-      const sag = Math.sin((i / (bulbCount - 1)) * Math.PI) * 0.08;
+      const bx = -1.22 + i * (2.44 / (bulbCount - 1));
       const bulb = new THREE.Mesh(bulbGeo, this.fairyLightBulbMat);
-      bulb.position.set(bx, 1.25 - sag, 0.16);
+      bulb.position.set(bx, 1.26, 0.165);
       this.fairyLightsGroup.add(bulb);
     }
 
     // Warm ambient point light for fairy lights
     this.fairyPointLight = new THREE.PointLight(0xffb703, 0.0, 3.2, 2);
-    this.fairyPointLight.position.set(0, 1.25, 0.22);
+    this.fairyPointLight.position.set(0, 1.26, 0.22);
     this.fairyLightsGroup.add(this.fairyPointLight);
 
     windowGroup.add(this.fairyLightsGroup);

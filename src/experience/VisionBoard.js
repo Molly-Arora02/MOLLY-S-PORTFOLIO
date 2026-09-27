@@ -423,68 +423,77 @@ export default class VisionBoard {
 
   buildAestheticPartialCover() {
     const coverGroup = new THREE.Group();
-    coverGroup.position.set(0, 0, 0.025);
+    coverGroup.position.set(0, 0, 0.02);
 
-    // 1. Elegant Diagonal Translucent Linen Sash / Drape covering ~35% (top-right to mid)
-    const drapeMat = new THREE.MeshStandardMaterial({
-      color: 0xfbf8f3,
+    // 1. Full-Coverage Translucent Linen Sheer Veil (Complete board coverage with ~35% visibility)
+    const veilMat = new THREE.MeshStandardMaterial({
+      color: 0xfaf7f2,
       roughness: 0.85,
       metalness: 0.05,
       transparent: true,
-      opacity: 0.62,
+      opacity: 0.64, // ~36% translucent visibility through the veil
       side: THREE.DoubleSide
     });
 
-    // Main diagonal sash covering top-right 35%
-    const sashGeo = new THREE.BoxGeometry(this.size.width * 0.58, this.size.height * 0.42, 0.008);
-    const sash = new THREE.Mesh(sashGeo, drapeMat);
-    sash.position.set(this.size.width * 0.22, this.size.height * 0.28, 0.012);
-    sash.rotation.z = -0.12;
-    sash.castShadow = true;
-    coverGroup.add(sash);
+    const veilGeo = new THREE.PlaneGeometry(this.size.width - 0.04, this.size.height - 0.04);
+    const veil = new THREE.Mesh(veilGeo, veilMat);
+    veil.position.set(0, 0, 0.008);
+    veil.castShadow = true;
+    veil.receiveShadow = true;
+    coverGroup.add(veil);
 
-    // Soft cascading fold overlay for depth
-    const foldGeo = new THREE.BoxGeometry(this.size.width * 0.48, this.size.height * 0.18, 0.01);
-    const fold = new THREE.Mesh(foldGeo, drapeMat);
-    fold.position.set(this.size.width * 0.24, this.size.height * 0.36, 0.018);
-    fold.rotation.z = -0.08;
-    coverGroup.add(fold);
+    // Subtle translucent fabric wave ripple for realistic cloth drape
+    const rippleMat = new THREE.MeshStandardMaterial({
+      color: 0xf5eee6,
+      roughness: 0.9,
+      transparent: true,
+      opacity: 0.35,
+      side: THREE.DoubleSide
+    });
+    for (let r = 0; r < 3; r++) {
+      const ripple = new THREE.Mesh(
+        new THREE.BoxGeometry(this.size.width * 0.96, 0.04, 0.004),
+        rippleMat
+      );
+      ripple.position.set(0, -this.size.height * 0.3 + r * (this.size.height * 0.3), 0.012);
+      coverGroup.add(ripple);
+    }
 
-    // 2. Brass / Metallic Pushpins securing the drape
+    // 2. Brass / Golden Corner Clips & Pushpins (All 4 corners)
     const pinMat = new THREE.MeshStandardMaterial({
       color: 0xd97706,
       metalness: 0.9,
       roughness: 0.2
     });
 
-    const pinCoords = [
-      [this.size.width * 0.44, this.size.height * 0.45],
-      [this.size.width * 0.02, this.size.height * 0.38],
-      [this.size.width * 0.42, this.size.height * 0.12]
+    const cornerPins = [
+      [-this.size.width / 2 + 0.08, this.size.height / 2 - 0.08],
+      [this.size.width / 2 - 0.08, this.size.height / 2 - 0.08],
+      [-this.size.width / 2 + 0.08, -this.size.height / 2 + 0.08],
+      [this.size.width / 2 - 0.08, -this.size.height / 2 + 0.08]
     ];
 
-    pinCoords.forEach(([px, py]) => {
-      const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.02, 16), pinMat);
+    cornerPins.forEach(([px, py]) => {
+      const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.02, 16), pinMat);
       pin.rotation.x = Math.PI / 2;
-      pin.position.set(px, py, 0.025);
+      pin.position.set(px, py, 0.016);
       coverGroup.add(pin);
     });
 
     // 3. Pinned Aesthetic Mood Tag / Sacred Mantram Ribbon
     const ribbonMat = new THREE.MeshStandardMaterial({
       color: 0xfef08a,
-      roughness: 0.5,
-      metalness: 0.1
+      roughness: 0.45,
+      metalness: 0.2
     });
     const ribbon = new THREE.Mesh(
-      new THREE.BoxGeometry(this.size.width * 0.36, 0.09, 0.006),
+      new THREE.BoxGeometry(this.size.width * 0.52, 0.09, 0.006),
       ribbonMat
     );
-    ribbon.position.set(this.size.width * 0.26, this.size.height * 0.24, 0.022);
-    ribbon.rotation.z = -0.12;
+    ribbon.position.set(0, this.size.height * 0.38, 0.018);
     coverGroup.add(ribbon);
 
-    // 4. Botanical Eucalyptus / Ivy Garland draped across top and cascading down
+    // 4. Botanical Eucalyptus / Ivy Garland draped across top border
     const vineMat = new THREE.MeshStandardMaterial({
       color: 0x166534,
       roughness: 0.6
@@ -494,33 +503,23 @@ export default class VisionBoard {
       roughness: 0.4
     });
 
-    // Main vine cord
+    // Main vine cord across top
     const vineCord = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.008, 0.008, this.size.width * 0.95, 12),
+      new THREE.CylinderGeometry(0.007, 0.007, this.size.width * 0.96, 12),
       vineMat
     );
     vineCord.rotation.z = Math.PI / 2;
-    vineCord.position.set(0, this.size.height / 2 - 0.04, 0.02);
+    vineCord.position.set(0, this.size.height / 2 - 0.03, 0.02);
     coverGroup.add(vineCord);
 
     // Leaves along the vine
-    for (let i = 0; i < 14; i++) {
-      const lx = -this.size.width * 0.42 + i * (this.size.width * 0.84 / 13);
-      const leaf = new THREE.Mesh(new THREE.DodecahedronGeometry(0.035, 1), leafMat);
+    for (let i = 0; i < 16; i++) {
+      const lx = -this.size.width * 0.44 + i * (this.size.width * 0.88 / 15);
+      const leaf = new THREE.Mesh(new THREE.DodecahedronGeometry(0.032, 1), leafMat);
       leaf.scale.set(1.2, 0.35, 0.8);
       leaf.rotation.set((i % 3) * 0.4, (i % 2) * 0.6, (i % 4) * 0.3);
-      leaf.position.set(lx, this.size.height / 2 - 0.04 + Math.sin(i * 0.8) * 0.02, 0.026);
+      leaf.position.set(lx, this.size.height / 2 - 0.03 + Math.sin(i * 0.9) * 0.015, 0.025);
       coverGroup.add(leaf);
-    }
-
-    // Cascading side vine on right
-    for (let j = 0; j < 6; j++) {
-      const ly = this.size.height / 2 - 0.08 - j * 0.09;
-      const sideLeaf = new THREE.Mesh(new THREE.DodecahedronGeometry(0.032, 1), leafMat);
-      sideLeaf.scale.set(1.1, 0.35, 0.8);
-      sideLeaf.rotation.set(0.3, 0.5, 0.4);
-      sideLeaf.position.set(this.size.width / 2 - 0.03, ly, 0.026);
-      coverGroup.add(sideLeaf);
     }
 
     this.group.add(coverGroup);
